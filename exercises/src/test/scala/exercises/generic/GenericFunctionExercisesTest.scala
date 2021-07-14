@@ -1,5 +1,7 @@
 package exercises.generic
 
+import exercises.generic.GenericFunctionExercises.Predicate.{False, True}
+
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import exercises.generic.GenericFunctionExercises._
@@ -47,9 +49,6 @@ class GenericFunctionExercisesTest extends AnyFunSuite with ScalaCheckDrivenProp
 
   test("Predicate &&") {
     forAll { (n: Int, f1: Int => Boolean) =>
-      def False[A]: Predicate[A] = Predicate(_ => false)
-      def True[A]: Predicate[A] = Predicate(_ => true)
-
       val p1 = Predicate(f1)
 
       assert((p1 && False)(n) == false)
@@ -59,9 +58,6 @@ class GenericFunctionExercisesTest extends AnyFunSuite with ScalaCheckDrivenProp
 
   test("Predicate ||") {
     forAll { (n: Int, f1: Int => Boolean) =>
-      def False[A]: Predicate[A] = Predicate(_ => false)
-      def True[A]: Predicate[A] = Predicate(_ => true)
-
       val p1 = Predicate(f1)
 
       assert((p1 || False)(n) == p1(n))
