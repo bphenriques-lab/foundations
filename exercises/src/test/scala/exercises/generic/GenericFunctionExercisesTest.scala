@@ -46,9 +46,6 @@ class GenericFunctionExercisesTest extends AnyFunSuite with ScalaCheckDrivenProp
   ////////////////////////////
 
   test("Predicate &&") {
-    assert((Predicate[Int](_ > 0) && Predicate[Int](_ % 2 == 0))(2))
-    assert(!(Predicate[Int](_ > 0) && Predicate[Int](_ % 2 == 0))(-2))
-
     forAll { (n: Int, f1: Int => Boolean) =>
       def False[A]: Predicate[A] = Predicate(_ => false)
       def True[A]: Predicate[A] = Predicate(_ => true)
@@ -60,7 +57,17 @@ class GenericFunctionExercisesTest extends AnyFunSuite with ScalaCheckDrivenProp
     }
   }
 
-  test("Predicate ||") {}
+  test("Predicate ||") {
+    forAll { (n: Int, f1: Int => Boolean) =>
+      def False[A]: Predicate[A] = Predicate(_ => false)
+      def True[A]: Predicate[A] = Predicate(_ => true)
+
+      val p1 = Predicate(f1)
+
+      assert((p1 || False)(n) == p1(n))
+      assert((p1 || True)(n) == true)
+    }
+  }
 
   test("Predicate flip") {}
 

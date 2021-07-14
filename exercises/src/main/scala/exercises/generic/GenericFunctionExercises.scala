@@ -89,8 +89,7 @@ object GenericFunctionExercises {
     //         (isEven || isPositive)(11) == true
     //         (isEven || isPositive)(-4) == true
     // but     (isEven || isPositive)(-7) == false
-    def ||(other: Predicate[A]): Predicate[A] =
-      ???
+    def ||(other: Predicate[A]): Predicate[A] = Predicate[A](a => eval(a) || other.eval(a))
 
     // 2c. Implement `flip` that reverses a predicate
     // such as isEven.flip(11) == true
