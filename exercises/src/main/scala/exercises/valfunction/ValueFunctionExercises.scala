@@ -45,7 +45,7 @@ object ValueFunctionExercises {
     //         Point(0, 0,0).isPositive == true
     // but     Point(0,-2,1).isPositive == false
     // Note: `isPositive` is a function defined within `Point` class, so `isPositive` has access to `x`, `y` and `z`.
-    def isPositive: Boolean = x > 0 && y > 0 && z > 0
+    def isPositive: Boolean = forAll(_ >= 0)
 
     // 2b. Implement `isEven` which returns true if `x`, `y` and `z` are all even numbers, false otherwise
     // such as Point(2, 4, 8).isEven == true
@@ -53,15 +53,13 @@ object ValueFunctionExercises {
     // but     Point(3,-2, 0).isEven == false
     // Note: You can use `% 2` to check if a number is odd or even,
     // e.g. 8 % 2 == 0 but 7 % 2 == 1
-    def isEven: Boolean =
-      ???
+    def isEven: Boolean = forAll(_ % 2 == 0)
 
     // 2c. Both `isPositive` and `isEven` check that a predicate holds for `x`, `y` and `z`.
     // Let's try to capture this pattern with a higher order function like `forAll`
     // such as Point(1,1,1).forAll(_ == 1) == true
     // but     Point(1,2,5).forAll(_ == 1) == false
     // Then, re-implement `isPositive` and `isEven` using `forAll`
-    def forAll(predicate: Int => Boolean): Boolean =
-      ???
+    def forAll(predicate: Int => Boolean): Boolean = predicate(x) && predicate(y) && predicate(z)
   }
 }
