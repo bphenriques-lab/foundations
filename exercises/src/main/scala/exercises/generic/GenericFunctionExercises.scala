@@ -94,11 +94,25 @@ object GenericFunctionExercises {
     // 2c. Implement `flip` that reverses a predicate
     // such as isEven.flip(11) == true
     def flip: Predicate[A] = Predicate(a => !eval(a))
+
+    def contramap[To](zoom: To => A): Predicate[To] = Predicate(a => eval(zoom(a)))
   }
 
   object Predicate {
     def False[A]: Predicate[A] = Predicate(_ => false)
     def True[A]: Predicate[A] = Predicate(_ => true)
+
+    def GreaterOrEqualThan(min: Int): Predicate[Int] = Predicate[Int](_ >= min)
+    def GreaterThan(min: Int): Predicate[Int] = Predicate[Int](_ > min)
+    def LowerOrEqualThan(max: Int): Predicate[Int] = Predicate[Int](_ <= max)
+    def LowerThan(max: Int): Predicate[Int] = Predicate[Int](_ < max)
+
+    def LengthGreaterOrEqualThan(min: Int): Predicate[String] = Predicate[String](_.length >= min)
+    def LengthGreaterThan(min: Int): Predicate[String] = Predicate[String](_.length > min)
+    def LengthLowerOrEqualThan(max: Int): Predicate[String] = Predicate[String](_.length <= max)
+    def LengthLowerThan(max: Int): Predicate[String] = Predicate[String](_.length < max)
+
+    def IsCapitalized: Predicate[String] = Predicate[String](s => s.capitalize == s)
   }
 
   // 2d. Implement `isValidUser`, a predicate which checks if a `User` is:
@@ -113,12 +127,14 @@ object GenericFunctionExercises {
   // You may want to create new Predicate methods to improve the implementation of `isValidUser`.
   case class User(name: String, age: Int)
 
-  lazy val isValidUser: Predicate[User] = {
-    val isAdult = Predicate[User](_.age >= 18)
-    val nameLength = Predicate[User](_.name.length >= 3)
-    val nameCapitalized = Predicate[User](user => user.name.capitalize == user.name)
+  def agePredicate(p: Predicate[Int]): Predicate[User] = Predicate(user => p.eval(user.age))
+  def namePredicate(p: Predicate[String]): Predicate[User] = Predicate(user => p.eval(user.name))
 
-    isAdult && nameLength && nameCapitalized
+  def by[A, B](zoom: A => B)(p: Predicate[B]) = p.contramap(zoom)
+
+  lazy val isValidUser: Predicate[User] = {
+    by[User, Int](_.age)(Predicate.GreaterOrEqualThan(18)) &&
+      by[User, String](_.name)(Predicate.LengthGreaterOrEqualThan(3) && Predicate.IsCapitalized)
   }
 
   ////////////////////////////
