@@ -82,8 +82,7 @@ object GenericFunctionExercises {
     // but     (isEven && isPositive)(11) == false
     //         (isEven && isPositive)(-4) == false
     //         (isEven && isPositive)(-7) == false
-    def &&(other: Predicate[A]): Predicate[A] =
-      ???
+    def &&(other: Predicate[A]): Predicate[A] = Predicate[A](a => eval(a) && other.eval(a))
 
     // 2b. Implement `||` that combines two predicates using logical or
     // such as (isEven || isPositive)(12) == true
