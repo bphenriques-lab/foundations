@@ -15,8 +15,7 @@ object ValueFunctionExercises {
   // 1b. Implement `secret` which transforms all characters in a String to '*'
   // such as secret("Welcome123") == "**********"
   // Note: Try to use a higher-order function from the String API
-  def secret(text: String): String =
-    ???
+  def secret(text: String): String = text.map(_ => '*')
 
   // 1c. Implement `isValidUsernameCharacter` which checks if a character is suitable for a username.
   // We accept:
