@@ -26,15 +26,14 @@ object ValueFunctionExercises {
   //              isValidUsernameCharacter('a') == true
   // but          isValidUsernameCharacter('^') == false
   // Note: You might find some useful helper methods on `char`.
-  def isValidUsernameCharacter(char: Char): Boolean =
-    ???
+  def isValidUsernameCharacter(char: Char): Boolean = char.isLetterOrDigit || char == '_' || char == '-'
 
   // 1d. Implement `isValidUsername` which checks that all the characters in a String are valid
   // such as isValidUsername("john-doe") == true
   // but     isValidUsername("*john*") == false
   // Note: Try to use `isValidUsernameCharacter` and a higher-order function from the String API.
   def isValidUsername(username: String): Boolean =
-    ???
+    username.forall(isValidUsernameCharacter)
 
   ///////////////////////
   // Exercise 2: Point

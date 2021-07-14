@@ -1,6 +1,7 @@
 package exercises.valfunction
 
 import exercises.valfunction.ValueFunctionExercises._
+import org.scalacheck.Gen
 import org.scalatest.funsuite.AnyFunSuite
 import org.scalatestplus.scalacheck.ScalaCheckDrivenPropertyChecks
 
@@ -27,8 +28,41 @@ class ValueFunctionExercisesTest extends AnyFunSuite with ScalaCheckDrivenProper
     }
   }
 
+  test("secret examples") {
+    assert(secret("") == "")
+    assert(secret("**") == "**")
+    assert(secret("hello4world-80") == "**************")
+  }
+
+  test("secret is idempotent") {
+    val once = secret("abc")
+    val twice = secret(secret("abc"))
+    assert(once == twice)
+  }
+
+  test("isValidUsernameCharacter examples") {
+    assert(isValidUsernameCharacter('-'))
+    assert(isValidUsernameCharacter('_'))
+    assert(!isValidUsernameCharacter('!'))
+  }
+
+  // TODO Use custom generator
+  test("isValidUsernameCharacter accepts alphaNumeric characters") {
+    forAll(Gen.alphaNumChar) { char => assert(isValidUsernameCharacter(char)) }
+  }
+
+  test("isValidUsername examples") {
+    assert(isValidUsername("bAnA3434-"))
+    assert(isValidUsername("b___AnA--3434-"))
+    assert(!isValidUsername("bananas!00"))
+  }
+
+  // TODO Use custom generator
+  test("isValidUsername accepts alphaNumeric strings") {
+    forAll(Gen.alphaNumStr) { str => assert(isValidUsername(str)) }
+  }
+
   ///////////////////////
   // Exercise 2: Point
   ///////////////////////
-
 }
