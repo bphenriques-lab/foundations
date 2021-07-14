@@ -65,7 +65,12 @@ class GenericFunctionExercisesTest extends AnyFunSuite with ScalaCheckDrivenProp
     }
   }
 
-  test("Predicate flip") {}
+  test("Predicate flip") {
+    forAll { (n: Int) =>
+      assert((Predicate.True flip)(n) == false)
+      assert((Predicate.False flip)(n) == true)
+    }
+  }
 
   ////////////////////////////
   // Exercise 3: JsonDecoder

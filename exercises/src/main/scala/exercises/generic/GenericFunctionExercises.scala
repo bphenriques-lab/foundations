@@ -93,8 +93,7 @@ object GenericFunctionExercises {
 
     // 2c. Implement `flip` that reverses a predicate
     // such as isEven.flip(11) == true
-    def flip: Predicate[A] =
-      ???
+    def flip: Predicate[A] = Predicate(a => !eval(a))
   }
 
   object Predicate {
