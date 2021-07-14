@@ -113,8 +113,13 @@ object GenericFunctionExercises {
   // You may want to create new Predicate methods to improve the implementation of `isValidUser`.
   case class User(name: String, age: Int)
 
-  lazy val isValidUser: Predicate[User] =
-    ???
+  lazy val isValidUser: Predicate[User] = {
+    val isAdult = Predicate[User](_.age >= 18)
+    val nameLength = Predicate[User](_.name.length >= 3)
+    val nameCapitalized = Predicate[User](user => user.name.capitalize == user.name)
+
+    isAdult && nameLength && nameCapitalized
+  }
 
   ////////////////////////////
   // Exercise 3: JsonDecoder

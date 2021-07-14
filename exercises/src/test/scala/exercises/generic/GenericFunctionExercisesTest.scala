@@ -72,6 +72,13 @@ class GenericFunctionExercisesTest extends AnyFunSuite with ScalaCheckDrivenProp
     }
   }
 
+  test("Predicate Valid User") {
+    assert(isValidUser(User("John", 20)) == true)
+    assert(isValidUser(User("John", 17)) == false)
+    assert(isValidUser(User("john", 20)) == false)
+    assert(isValidUser(User("x"   , 23)) == false)
+  }
+
   ////////////////////////////
   // Exercise 3: JsonDecoder
   ////////////////////////////
