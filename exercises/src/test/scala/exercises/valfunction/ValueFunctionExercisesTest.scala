@@ -65,4 +65,10 @@ class ValueFunctionExercisesTest extends AnyFunSuite with ScalaCheckDrivenProper
   ///////////////////////
   // Exercise 2: Point
   ///////////////////////
+
+  test("Point.isPositive") {
+    forAll { (x: Int, y: Int, z: Int) =>
+      assert(Point(x.max(0), y.max(0), z.max(0)).isPositive) // abs is not good due to edge-cases with Int.MinValue
+    }
+  }
 }
