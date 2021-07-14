@@ -21,8 +21,7 @@ object GenericFunctionExercises {
 
     // 1b. Implement `map` which applies a function to `first` and `second`
     // such as Pair("John", "Doe").map(_.length) == Pair(4,3)
-    def map[To](update: A => To): Pair[To] =
-      ???
+    def map[To](update: A => To): Pair[To] = Pair(update(first), update(second))
 
     // 1c. Implement `zipWith` which merges two Pairs using a `combine` function
     // such as Pair(0, 2).zipWith(Pair(3, 4))((x, y) => x + y) == Pair(3, 6)

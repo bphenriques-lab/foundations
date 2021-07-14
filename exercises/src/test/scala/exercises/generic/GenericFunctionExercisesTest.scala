@@ -19,7 +19,15 @@ class GenericFunctionExercisesTest extends AnyFunSuite with ScalaCheckDrivenProp
     assert(Pair(0, 1).swap == Pair(1, 0))
   }
 
-  test("Pair map") {}
+  // Question: Is this enough coverage?
+  // https://fp-tower.slack.com/archives/G01EQCN2M25/p1626273276068600
+  test("Option A: Pair map using identity") {
+    assert(Pair("123", "456789").map(identity) == Pair("123", "456789"))
+  }
+ 
+  test("Option B: Pair map using custom function") {
+    assert(Pair("123", "456789").map(_.length) == Pair(3, 6))
+  }
 
   test("Pair decoded") {}
 
