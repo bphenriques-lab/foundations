@@ -33,7 +33,9 @@ class GenericFunctionExercisesTest extends AnyFunSuite with ScalaCheckDrivenProp
     assert(GenericFunctionExercises.decoded == Pair("Programming", "Functional"))
   }
 
-  test("Pair zipWith") {}
+  test("Pair zipWith") {
+    assert(Pair(0, 2).zipWith(Pair(3, 4))((x, y) => x + y) == Pair(3, 6))
+  }
 
   test("Pair productNames") {}
 

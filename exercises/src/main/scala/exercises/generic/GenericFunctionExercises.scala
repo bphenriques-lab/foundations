@@ -28,7 +28,7 @@ object GenericFunctionExercises {
     //         Pair(2, 3).zipWith(Pair("Hello ", "World "))(replicate) == Pair("Hello Hello ", "World World World ")
     // Bonus: Why did we separate the arguments of `zipWith` into two set of parentheses?
     def zipWith[Other, To](other: Pair[Other])(combine: (A, Other) => To): Pair[To] =
-      ???
+      Pair(combine(first, other.first), combine(second, other.second))
   }
 
   // 1d. Use the Pair API to decode the content of `secret`.
