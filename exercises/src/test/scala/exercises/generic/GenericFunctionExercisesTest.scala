@@ -24,12 +24,14 @@ class GenericFunctionExercisesTest extends AnyFunSuite with ScalaCheckDrivenProp
   test("Option A: Pair map using identity") {
     assert(Pair("123", "456789").map(identity) == Pair("123", "456789"))
   }
- 
+
   test("Option B: Pair map using custom function") {
     assert(Pair("123", "456789").map(_.length) == Pair(3, 6))
   }
 
-  test("Pair decoded") {}
+  test("Pair decoded") {
+    assert(GenericFunctionExercises.decoded == Pair("Programming", "Functional"))
+  }
 
   test("Pair zipWith") {}
 
