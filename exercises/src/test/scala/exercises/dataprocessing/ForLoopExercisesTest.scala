@@ -32,4 +32,30 @@ class ForLoopExercisesTest extends AnyFunSuite with ScalaCheckDrivenPropertyChec
     assert(wordCount(Nil) == Map.empty)
   }
 
+  test("wordCount all counts are > 0") {
+    forAll { (words: List[String]) =>
+      assert(wordCount(words).values.forall(_ > 0))
+    }
+  }
+
+  test("wordCount - size(filter)") {
+    forAll { (words: List[String]) =>
+      wordCount(words).foreach { case (word, count) =>
+        val filtered = words.filter(_ == word)
+        assert(count == size(filtered))
+      }
+    }
+  }
+  
+  test("pattern is consistent with the foldLeft in the standard library") {
+    forAll { (numbers: List[Int], default: Int, combine: (Int, Int) => Int) =>
+      assert(pattern(numbers, default)(combine) == numbers.foldLeft(default)(combine))
+    }
+  }
+
+  test("pattern noop") {
+    forAll { (numbers: List[Int]) =>
+      assert(pattern(numbers, List.empty[Int])(_ :+ _) == numbers)
+    }
+  }
 }
