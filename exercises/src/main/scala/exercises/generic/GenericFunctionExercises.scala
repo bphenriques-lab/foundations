@@ -149,13 +149,11 @@ object GenericFunctionExercises {
 
     def map[To](update: A => To): JsonDecoder[To] =
       (json: Json) => update(decode(json))
-  }
 
-  object JsonDecoder {
-    def either[To](aDecoder: JsonDecoder[To], bDecoder: JsonDecoder[To]): JsonDecoder[To] = new JsonDecoder[To] {
-      override def decode(json: Json): To = Try(aDecoder.decode(json)) match {
+    def orElse(aDecoder: JsonDecoder[A]): JsonDecoder[A] = new JsonDecoder[A] {
+      override def decode(json: Json): To = Try(decode(json)) match {
         case Success(v) => v
-        case Failure(_) => bDecoder.decode(json)
+        case Failure(_) => aDecoder.decode(json)
       }
     }
   }
@@ -194,7 +192,7 @@ object GenericFunctionExercises {
   lazy val localDateDecoderString: JsonDecoder[LocalDate] =
     stringDecoder.map { s => LocalDate.parse(s, DateTimeFormatter.ISO_LOCAL_DATE) }
 
-  lazy val localDateDecoderInt: JsonDecoder[LocalDate] =
+  lazy val localDateDecoderLong: JsonDecoder[LocalDate] =
     longDecoderSAM.map { d => LocalDate.ofEpochDay(d) }
 
   // 3c. Implement `map` a generic function that converts a `JsonDecoder` of `From`
@@ -214,10 +212,7 @@ object GenericFunctionExercises {
   // but weirdLocalDateDecoder.decode("hello") would throw an Exception
   // Try to think how we could extend JsonDecoder so that we can easily implement
   // other decoders that follow the same pattern.
-  lazy val weirdLocalDateDecoder: JsonDecoder[LocalDate] = JsonDecoder.either(
-    localDateDecoderString,
-    localDateDecoderInt
-  )
+  lazy val weirdLocalDateDecoder: JsonDecoder[LocalDate] = localDateDecoderString.orElse(localDateDecoderLong)
 
   //////////////////////////////////////////////
   // Bonus question (not covered by the video)
