@@ -17,17 +17,17 @@ class ForLoopExercisesTest extends AnyFunSuite with ScalaCheckDrivenPropertyChec
     }
   }
 
-  ignore("size") {
+  test("size") {
     assert(size(List(2, 5, 1, 8)) == 4)
     assert(size(Nil) == 0)
   }
 
-  ignore("min") {
+  test("min") {
     assert(min(List(2, 5, 1, 8)) == Some(1))
     assert(min(Nil) == None)
   }
 
-  ignore("wordCount") {
+  test("wordCount") {
     assert(wordCount(List("Hi", "Hello", "Hi")) == Map("Hi" -> 2, "Hello" -> 1))
     assert(wordCount(Nil) == Map.empty)
   }

@@ -206,12 +206,6 @@ object GenericFunctionAnswers {
   def map[From, To](decoder: JsonDecoder[From])(update: From => To): JsonDecoder[To] =
     (json: Json) => update(decoder.decode(json))
 
-  val userIdDecoderV2: JsonDecoder[UserId] =
-    intDecoder.map(UserId)
-
-  val localDateDecoderV2: JsonDecoder[LocalDate] =
-    stringDecoder.map(LocalDate.parse(_, DateTimeFormatter.ISO_LOCAL_DATE))
-
   val longDecoder: JsonDecoder[Long] =
     (json: Json) => json.toLong
 
@@ -219,7 +213,7 @@ object GenericFunctionAnswers {
     longDecoder.map(LocalDate.ofEpochDay)
 
   val weirdLocalDateDecoder: JsonDecoder[LocalDate] =
-    localDateDecoderV2 orElse longLocalDateDecoder
+    localDateDecoder orElse longLocalDateDecoder
 
   def optionDecoder[A](decoder: JsonDecoder[A]): JsonDecoder[Option[A]] = {
     case "null" => None
