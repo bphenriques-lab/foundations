@@ -34,8 +34,11 @@ object TemperatureNotebook extends App {
   // a. Implement `samples`, a `ParList` containing all the `Samples` in `successes`.
   // Partition `parSamples` so that it contains 10 partitions of roughly equal size.
   // Note: Check `ParList` companion object
-  lazy val parSamples: ParList[Sample] =
-    ???
+  val partitionSize: Int = Math.ceil(samples.size.toDouble / 10).toInt
+  lazy val parSamples: ParList[Sample] = ParList.byPartitionSize(
+    partitionSize,
+    samples
+  )
 
   // b. Implement `minSampleByTemperature` in TemperatureExercises
   lazy val coldestSample: Option[Sample] =

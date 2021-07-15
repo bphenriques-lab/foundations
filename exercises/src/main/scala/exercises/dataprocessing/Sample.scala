@@ -2,6 +2,8 @@ package exercises.dataprocessing
 
 import kantan.csv.RowDecoder
 
+import scala.math.Ordering
+
 case class Sample(
   region: String, // e.g. Africa, Asia, Australia/South Pacific, Europe, Middle East, North America
   country: String, // e.g. Algeria, Burundi, Benin, Central African Republic, Congo
@@ -32,5 +34,9 @@ object Sample {
       .decoder(0, 1, 2, 3, 4, 5, 6, 7)(Sample.apply)
       // -99 is a no-data flag when data are not available, see https://academic.udayton.edu/kissock/http/Weather/source.htm
       .filter(_.temperatureFahrenheit != -99)
+  }
+
+  implicit val temperatureOrdering: Ordering[Sample] = new Ordering[Sample] {
+    override def compare(x: Sample, y: Sample): Int = x.temperatureCelsius.compareTo(y.temperatureCelsius)
   }
 }

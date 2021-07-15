@@ -6,7 +6,7 @@ import TemperatureExercises._
 
 class ParListTest extends AnyFunSuite with ScalaCheckDrivenPropertyChecks with ParListTestInstances {
 
-  ignore("minSampleByTemperature example") {
+  test("minSampleByTemperature example") {
     val samples = List(
       Sample("Africa", "Algeria", None, "Algiers", 8, 1, 2020, 50),
       Sample("Africa", "Algeria", None, "Algiers", 8, 1, 2020, 56.3),
@@ -24,7 +24,16 @@ class ParListTest extends AnyFunSuite with ScalaCheckDrivenPropertyChecks with P
     )
   }
 
-  ignore("minSampleByTemperature returns the coldest Sample") {
+  test("minSampleByTemperature consistent with List minByOption") {
+    forAll { (samples: ParList[Sample]) =>
+      assert(
+        TemperatureExercises.minSampleByTemperature(samples) ==
+          samples.partitions.flatten.minByOption(_.temperatureCelsius)
+      )
+    }
+  }
+
+  test("minSampleByTemperature returns the coldest Sample") {
     forAll { (samples: List[Sample]) =>
       val parSamples = ParList.byPartitionSize(3, samples)
 

@@ -1,13 +1,18 @@
 package exercises.dataprocessing
 
+import exercises.dataprocessing.TemperatureNotebook.partitionSize
+
 object TemperatureExercises {
   // b. Implement `minSampleByTemperature` which finds the `Sample` with the coldest temperature.
   // `minSampleByTemperature` should work as follow:
   // Step 1: Find the local minimums (for each partition the `Sample` with the coldest temperature).
   // Step 2: Find the minimum value among the local minimums.
   // Note: We'll write test in the file `ParListTest.scala`
-  def minSampleByTemperature(samples: ParList[Sample]): Option[Sample] =
-    ???
+  def minSampleByTemperature(samples: ParList[Sample]): Option[Sample] = {
+    def minTemperatureList(partition: List[Sample]): Option[Sample] = partition.minOption
+
+    samples.partitions.flatMap(minTemperatureList).minOption
+  }
 
   // c. Implement `averageTemperature` which finds the average temperature across all `Samples`.
   // `averageTemperature` should work as follow:
@@ -20,8 +25,7 @@ object TemperatureExercises {
   // Step 3: Divide the total temperature by the size of dataset.
   // In case the input `ParList` is empty we return `None`.
   // Bonus: Can you calculate the size and sum in one go?
-  def averageTemperature(samples: ParList[Sample]): Option[Double] =
-    ???
+  def averageTemperature(samples: ParList[Sample]): Option[Double] = ???
 
   // d. Implement `foldLeft` and then move it inside the class `ParList`.
   // `foldLeft` should work as follow:
