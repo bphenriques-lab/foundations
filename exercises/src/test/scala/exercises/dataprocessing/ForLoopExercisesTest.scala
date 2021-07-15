@@ -46,7 +46,7 @@ class ForLoopExercisesTest extends AnyFunSuite with ScalaCheckDrivenPropertyChec
       }
     }
   }
-  
+
   test("pattern is consistent with the foldLeft in the standard library") {
     forAll { (numbers: List[Int], default: Int, combine: (Int, Int) => Int) =>
       assert(pattern(numbers, default)(combine) == numbers.foldLeft(default)(combine))
@@ -58,4 +58,23 @@ class ForLoopExercisesTest extends AnyFunSuite with ScalaCheckDrivenPropertyChec
       assert(pattern(numbers, List.empty[Int])(_ :+ _) == numbers)
     }
   }
+
+  test("map consistent with List map") {
+    forAll { (numbers: List[Int], update: Int => Int) =>
+      assert(map(numbers)(update) == numbers.map(update))
+    }
+  }
+
+  test("reverse consistent with List reverse") {
+    forAll { (numbers: List[Int]) =>
+      assert(reverse(numbers) == numbers.reverse)
+    }
+  }
+
+  test("lastOption consistent with List lastOption") {
+    forAll { (numbers: List[Int]) =>
+      assert(lastOption(numbers) == numbers.lastOption)
+    }
+  }
+
 }
