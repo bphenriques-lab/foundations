@@ -95,9 +95,9 @@ class GenericFunctionExercisesTest extends AnyFunSuite with ScalaCheckDrivenProp
   }
 
   test("JsonDecoder LocalDate") {
-    assert(localDateDecoder.decode("\"2020-03-26\"") == LocalDate.of(2020,3,26))
-    assert(Try(localDateDecoder.decode("2020-03-26")).isFailure)
-    assert(Try(localDateDecoder.decode("hello")).isFailure)
+    assert(localDateDecoderString.decode("\"2020-03-26\"") == LocalDate.of(2020,3,26))
+    assert(Try(localDateDecoderString.decode("2020-03-26")).isFailure)
+    assert(Try(localDateDecoderString.decode("hello")).isFailure)
   }
 
   test("JsonDecoder LocalDate round-trip") {
@@ -106,10 +106,14 @@ class GenericFunctionExercisesTest extends AnyFunSuite with ScalaCheckDrivenProp
       .map(LocalDate.ofEpochDay)
 
     forAll(genLocalDate) { (v: LocalDate) =>
-      assert(localDateDecoder.decode("\"" + DateTimeFormatter.ISO_LOCAL_DATE.format(v) + "\"") == v)
+      assert(localDateDecoderString.decode("\"" + DateTimeFormatter.ISO_LOCAL_DATE.format(v) + "\"") == v)
     }
   }
 
-  test("JsonDecoder weirdLocalDateDecoder") {}
+  test("JsonDecoder weirdLocalDateDecoder") {
+    assert(weirdLocalDateDecoder.decode("\"2020-03-26\"") == LocalDate.of(2020,3,26))
+    assert(weirdLocalDateDecoder.decode("18347")          == LocalDate.of(2020,3,26))
+    assert(Try(weirdLocalDateDecoder.decode("hello")).isFailure)
+  }
 
 }

@@ -151,6 +151,15 @@ object GenericFunctionExercises {
       (json: Json) => update(decode(json))
   }
 
+  object JsonDecoder {
+    def either[To](aDecoder: JsonDecoder[To], bDecoder: JsonDecoder[To]): JsonDecoder[To] = new JsonDecoder[To] {
+      override def decode(json: Json): To = Try(aDecoder.decode(json)) match {
+        case Success(v) => v
+        case Failure(_) => bDecoder.decode(json)
+      }
+    }
+  }
+
   val intDecoder: JsonDecoder[Int] = new JsonDecoder[Int] {
     def decode(json: Json): Int = json.toInt
   }
@@ -167,6 +176,9 @@ object GenericFunctionExercises {
   val intDecoderSAM: JsonDecoder[Int] =
     (json: Json) => json.toInt
 
+  val longDecoderSAM: JsonDecoder[Long] =
+    (json: Json) => json.toLong
+
   // 3a. Implement `userIdDecoder`, a `JsonDecoder` for the `UserId` case class
   // such as userIdDecoder.decode("1234") == UserId(1234)
   // but     userIdDecoder.decode("hello") would throw an Exception
@@ -179,8 +191,11 @@ object GenericFunctionExercises {
   // and     localDateDecoder.decode("hello") would throw an Exception
   // Note: You can parse a `LocalDate` using `LocalDate.parse` with a java.time.format.DateTimeFormatter
   // e.g. DateTimeFormatter.ISO_LOCAL_DATE
-  lazy val localDateDecoder: JsonDecoder[LocalDate] =
+  lazy val localDateDecoderString: JsonDecoder[LocalDate] =
     stringDecoder.map { s => LocalDate.parse(s, DateTimeFormatter.ISO_LOCAL_DATE) }
+
+  lazy val localDateDecoderInt: JsonDecoder[LocalDate] =
+    longDecoderSAM.map { d => LocalDate.ofEpochDay(d) }
 
   // 3c. Implement `map` a generic function that converts a `JsonDecoder` of `From`
   // into a `JsonDecoder` of `To`.
@@ -199,8 +214,10 @@ object GenericFunctionExercises {
   // but weirdLocalDateDecoder.decode("hello") would throw an Exception
   // Try to think how we could extend JsonDecoder so that we can easily implement
   // other decoders that follow the same pattern.
-  lazy val weirdLocalDateDecoder: JsonDecoder[LocalDate] =
-    ???
+  lazy val weirdLocalDateDecoder: JsonDecoder[LocalDate] = JsonDecoder.either(
+    localDateDecoderString,
+    localDateDecoderInt
+  )
 
   //////////////////////////////////////////////
   // Bonus question (not covered by the video)
