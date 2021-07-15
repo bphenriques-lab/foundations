@@ -146,6 +146,9 @@ object GenericFunctionExercises {
 
   trait JsonDecoder[A] {
     def decode(json: Json): A
+
+    def map[To](update: A => To): JsonDecoder[To] =
+      (json: Json) => update(decode(json))
   }
 
   val intDecoder: JsonDecoder[Int] = new JsonDecoder[Int] {
@@ -168,7 +171,7 @@ object GenericFunctionExercises {
   // such as userIdDecoder.decode("1234") == UserId(1234)
   // but     userIdDecoder.decode("hello") would throw an Exception
   case class UserId(value: Int)
-  lazy val userIdDecoder: JsonDecoder[UserId] = map(intDecoder)(UserId)
+  lazy val userIdDecoder: JsonDecoder[UserId] = intDecoder.map(UserId)
 
   // 3b. Implement `localDateDecoder`, a `JsonDecoder` for `LocalDate`
   // such as localDateDecoder.decode("\"2020-03-26\"") == LocalDate.of(2020,3,26)
@@ -177,13 +180,13 @@ object GenericFunctionExercises {
   // Note: You can parse a `LocalDate` using `LocalDate.parse` with a java.time.format.DateTimeFormatter
   // e.g. DateTimeFormatter.ISO_LOCAL_DATE
   lazy val localDateDecoder: JsonDecoder[LocalDate] =
-    map(stringDecoder) { s => LocalDate.parse(s, DateTimeFormatter.ISO_LOCAL_DATE) }
+    stringDecoder.map { s => LocalDate.parse(s, DateTimeFormatter.ISO_LOCAL_DATE) }
 
   // 3c. Implement `map` a generic function that converts a `JsonDecoder` of `From`
   // into a `JsonDecoder` of `To`.
   // Bonus: Can you re-implement `userIdDecoder` and `localDateDecoder` using `map`
-  def map[From, To](decoder: JsonDecoder[From])(update: From => To): JsonDecoder[To] =
-    (json: Json) => update(decoder.decode(json))
+  //def map[From, To](decoder: JsonDecoder[From])(update: From => To): JsonDecoder[To] =
+  //  (json: Json) => update(decoder.decode(json))
 
   // 3d. Move `map` inside of `JsonDecoder` trait so that we can use the syntax
   // `intDecoder.map(_ + 1)` instead of `map(intDecoder)(_ + 1)`
