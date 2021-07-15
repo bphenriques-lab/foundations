@@ -168,8 +168,9 @@ object GenericFunctionExercises {
   // such as userIdDecoder.decode("1234") == UserId(1234)
   // but     userIdDecoder.decode("hello") would throw an Exception
   case class UserId(value: Int)
-  lazy val userIdDecoder: JsonDecoder[UserId] =
-    ???
+  lazy val userIdDecoder: JsonDecoder[UserId] = (json: Json) => UserId(
+    intDecoder.decode(json)
+  )
 
   // 3b. Implement `localDateDecoder`, a `JsonDecoder` for `LocalDate`
   // such as localDateDecoder.decode("\"2020-03-26\"") == LocalDate.of(2020,3,26)
@@ -177,8 +178,8 @@ object GenericFunctionExercises {
   // and     localDateDecoder.decode("hello") would throw an Exception
   // Note: You can parse a `LocalDate` using `LocalDate.parse` with a java.time.format.DateTimeFormatter
   // e.g. DateTimeFormatter.ISO_LOCAL_DATE
-  lazy val localDateDecoder: JsonDecoder[LocalDate] =
-    ???
+  lazy val localDateDecoder: JsonDecoder[LocalDate] = (json: Json) =>
+    LocalDate.parse(stringDecoder.decode(json), DateTimeFormatter.ISO_LOCAL_DATE)
 
   // 3c. Implement `map` a generic function that converts a `JsonDecoder` of `From`
   // into a `JsonDecoder` of `To`.

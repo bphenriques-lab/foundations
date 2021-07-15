@@ -1,14 +1,13 @@
 package exercises.generic
 
 import exercises.generic.GenericFunctionExercises.Predicate.{False, True}
-
-import java.time.LocalDate
-import java.time.format.DateTimeFormatter
 import exercises.generic.GenericFunctionExercises._
 import org.scalacheck.{Arbitrary, Gen}
 import org.scalatest.funsuite.AnyFunSuite
 import org.scalatestplus.scalacheck.ScalaCheckDrivenPropertyChecks
 
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
 import scala.util.Try
 
 class GenericFunctionExercisesTest extends AnyFunSuite with ScalaCheckDrivenPropertyChecks {
@@ -83,9 +82,33 @@ class GenericFunctionExercisesTest extends AnyFunSuite with ScalaCheckDrivenProp
   // Exercise 3: JsonDecoder
   ////////////////////////////
 
-  test("JsonDecoder UserId") {}
+  test("JsonDecoder UserId") {
+    assert(userIdDecoder.decode("1234") == UserId(1234))
+    assert(userIdDecoder.decode("-1234") == UserId(-1234))
+    assert(Try(userIdDecoder.decode("abc")).isFailure)
+  }
 
-  test("JsonDecoder LocalDate") {}
+  test("JsonDecoder UserId round-trip") {
+    forAll { (v: Int) =>
+      assert(userIdDecoder.decode(v.toString) == UserId(v))
+    }
+  }
+
+  test("JsonDecoder LocalDate") {
+    assert(localDateDecoder.decode("\"2020-03-26\"") == LocalDate.of(2020,3,26))
+    assert(Try(localDateDecoder.decode("2020-03-26")).isFailure)
+    assert(Try(localDateDecoder.decode("hello")).isFailure)
+  }
+
+  test("JsonDecoder LocalDate round-trip") {
+    val genLocalDate: Gen[LocalDate] = Gen
+      .choose(LocalDate.MIN.toEpochDay, LocalDate.MAX.toEpochDay)
+      .map(LocalDate.ofEpochDay)
+    
+    forAll(genLocalDate) { (v: LocalDate) =>
+      assert(localDateDecoder.decode("\"" + DateTimeFormatter.ISO_LOCAL_DATE.format(v) + "\"") == v)
+    }
+  }
 
   test("JsonDecoder weirdLocalDateDecoder") {}
 
