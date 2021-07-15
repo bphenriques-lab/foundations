@@ -1,6 +1,6 @@
 package exercises.dataprocessing
 
-import exercises.dataprocessing.TemperatureNotebook.partitionSize
+import com.sun.tools.javac.util.Pair
 
 object TemperatureExercises {
   // b. Implement `minSampleByTemperature` which finds the `Sample` with the coldest temperature.
@@ -25,7 +25,17 @@ object TemperatureExercises {
   // Step 3: Divide the total temperature by the size of dataset.
   // In case the input `ParList` is empty we return `None`.
   // Bonus: Can you calculate the size and sum in one go?
-  def averageTemperature(samples: ParList[Sample]): Option[Double] = ???
+  // Answer: I believe so, with foldLeft where the initial state is a Pair<Sum,Size>.
+  // Alternatively we can use running average.
+  def averageTemperature(samples: ParList[Sample]): Option[Double] = {
+    def sumPerPartition(partition: List[Sample]): Option[(Int, Double)] = {
+      Option.unless(partition.isEmpty) { partition.size -> partition.map(_.temperatureFahrenheit).sum }
+    }
+
+    val size = samples.partitions.flatMap(sumPerPartition).map(_._1).sum
+    val sum = samples.partitions.flatMap(sumPerPartition).map(_._2).sum
+    Option.unless(samples.partitions.isEmpty) { sum / size }
+  }
 
   // d. Implement `foldLeft` and then move it inside the class `ParList`.
   // `foldLeft` should work as follow:
