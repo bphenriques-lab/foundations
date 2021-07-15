@@ -225,8 +225,12 @@ object GenericFunctionExercises {
   // * "\"null\"" into a Some("null")
   // * "null" into "None"
   // Note: you may need to change the function signature
-  def optionDecoder[A]: JsonDecoder[Option[A]] =
-    ???
+  def optionDecoder[A](aDecoder: JsonDecoder[A]): JsonDecoder[Option[A]] = new JsonDecoder[Option[A]] {
+    override def decode(json: Json): Option[A] = json match {
+      case "null" => None
+      case other => Some(aDecoder.decode(other))
+    }
+  }
 
   // 3g. `JsonDecoder` currently throws an exception if the input is not a valid JSON.
   // How could you change the API so that it doesn't happen anymore?

@@ -116,4 +116,8 @@ class GenericFunctionExercisesTest extends AnyFunSuite with ScalaCheckDrivenProp
     assert(Try(weirdLocalDateDecoder.decode("hello")).isFailure)
   }
 
+  test("JsonDecoder Option") {
+    assert(optionDecoder(stringDecoder).decode("null") == None)
+    assert(optionDecoder(stringDecoder).decode("\"1234\"") == Some("1234"))
+  }
 }
