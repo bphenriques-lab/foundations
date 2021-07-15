@@ -150,12 +150,11 @@ object GenericFunctionExercises {
     def map[To](update: A => To): JsonDecoder[To] =
       (json: Json) => update(decode(json))
 
-    def orElse(aDecoder: JsonDecoder[A]): JsonDecoder[A] = new JsonDecoder[A] {
-      override def decode(json: Json): To = Try(decode(json)) match {
-        case Success(v) => v
-        case Failure(_) => aDecoder.decode(json)
+    def orElse(fallback: JsonDecoder[A]): JsonDecoder[A] = (json: Json) =>
+      Try(decode(json)) match {
+        case Success(value) => value
+        case Failure(_) => fallback.decode(json)
       }
-    }
   }
 
   val intDecoder: JsonDecoder[Int] = new JsonDecoder[Int] {
@@ -235,4 +234,44 @@ object GenericFunctionExercises {
   // 3g. `JsonDecoder` currently throws an exception if the input is not a valid JSON.
   // How could you change the API so that it doesn't happen anymore?
 
+  trait JsonDecoderV2[A] {
+    def decode(json: Json): Either[Throwable, A]
+
+    def map[To](update: A => To): JsonDecoderV2[To] = (json: Json) => decode(json).map(update)
+
+    def orElse(aDecoder: JsonDecoderV2[A]): JsonDecoderV2[A] = (json: Json) => decode(json) match {
+      case result @ Right(v) => result
+      case Left(_) => aDecoder.decode(json)
+    }
+  }
+
+  object JsonDecoderV2 {
+    val intDecoderV2: JsonDecoderV2[Int] = new JsonDecoderV2[Int] {
+      def decode(json: Json): Either[Throwable, Int] = Try(json.toInt).toEither
+    }
+
+    val longDecoderV2: JsonDecoderV2[Long] = new JsonDecoderV2[Long] {
+      def decode(json: Json): Either[Throwable, Long] = Try(json.toLong).toEither
+    }
+
+    val stringDecoderV2: JsonDecoderV2[String] = new JsonDecoderV2[String] {
+      def decode(json: Json): Either[Throwable, String] =
+        if (json.startsWith("\"") && json.endsWith("\"")) // check it starts and ends with `"`
+          Right(json.substring(1, json.length - 1))
+        else
+          Left(new IllegalArgumentException(s"$json is not a valid JSON string"))
+    }
+
+    lazy val localDateDecoderStringV2: JsonDecoderV2[LocalDate] =
+      stringDecoderV2.map { s => LocalDate.parse(s, DateTimeFormatter.ISO_LOCAL_DATE) }
+    lazy val localDateDecoderLongV2: JsonDecoderV2[LocalDate] =
+      longDecoderV2.map { d => LocalDate.ofEpochDay(d) }
+
+    lazy val weirdLocalDateDecoderV2: JsonDecoderV2[LocalDate] = localDateDecoderStringV2.orElse(localDateDecoderLongV2)
+
+    def optionDecoderV2[A](aDecoder: JsonDecoderV2[A]): JsonDecoderV2[Option[A]] = {
+      case "null" => Right(None)
+      case other => aDecoder.decode(other).map(v => Some(v))
+    }
+  }
 }

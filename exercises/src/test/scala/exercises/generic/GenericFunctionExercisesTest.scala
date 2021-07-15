@@ -120,4 +120,35 @@ class GenericFunctionExercisesTest extends AnyFunSuite with ScalaCheckDrivenProp
     assert(optionDecoder(stringDecoder).decode("null") == None)
     assert(optionDecoder(stringDecoder).decode("\"1234\"") == Some("1234"))
   }
+
+  ////////////////////////////
+  // Exercise Extension: JsonDecoderV2
+  ////////////////////////////
+
+  test("JsonDecoderV2 LocalDate") {
+    assert(JsonDecoderV2.localDateDecoderStringV2.decode("\"2020-03-26\"") == Right(LocalDate.of(2020,3,26)))
+    assert(JsonDecoderV2.localDateDecoderStringV2.decode("2020-03-26").isLeft)
+    assert(JsonDecoderV2.localDateDecoderStringV2.decode("hello").isLeft)
+  }
+
+  test("JsonDecoderV2 LocalDate round-trip") {
+    val genLocalDate: Gen[LocalDate] = Gen
+      .choose(LocalDate.MIN.toEpochDay, LocalDate.MAX.toEpochDay)
+      .map(LocalDate.ofEpochDay)
+
+    forAll(genLocalDate) { (v: LocalDate) =>
+      assert(JsonDecoderV2.localDateDecoderStringV2.decode("\"" + DateTimeFormatter.ISO_LOCAL_DATE.format(v) + "\"") == Right(v))
+    }
+  }
+
+  test("JsonDecoderV2 weirdLocalDateDecoder") {
+    assert(JsonDecoderV2.weirdLocalDateDecoderV2.decode("\"2020-03-26\"") == Right(LocalDate.of(2020,3,26)))
+    assert(JsonDecoderV2.weirdLocalDateDecoderV2.decode("18347")          == Right(LocalDate.of(2020,3,26)))
+    assert(JsonDecoderV2.weirdLocalDateDecoderV2.decode("hello").isLeft)
+  }
+
+  test("JsonDecoderV2 Option") {
+    assert(JsonDecoderV2.optionDecoderV2(JsonDecoderV2.stringDecoderV2).decode("null") == Right(None))
+    assert(JsonDecoderV2.optionDecoderV2(JsonDecoderV2.stringDecoderV2).decode("\"1234\"") == Right(Some("1234")))
+  }
 }
