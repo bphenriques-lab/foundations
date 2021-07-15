@@ -104,7 +104,7 @@ class GenericFunctionExercisesTest extends AnyFunSuite with ScalaCheckDrivenProp
     val genLocalDate: Gen[LocalDate] = Gen
       .choose(LocalDate.MIN.toEpochDay, LocalDate.MAX.toEpochDay)
       .map(LocalDate.ofEpochDay)
-    
+
     forAll(genLocalDate) { (v: LocalDate) =>
       assert(localDateDecoder.decode("\"" + DateTimeFormatter.ISO_LOCAL_DATE.format(v) + "\"") == v)
     }
