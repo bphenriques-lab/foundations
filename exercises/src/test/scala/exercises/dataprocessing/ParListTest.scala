@@ -92,4 +92,10 @@ class ParListTest extends AnyFunSuite with ScalaCheckDrivenPropertyChecks with P
       }
     }
   }
+
+  test("monoFoldLeft sum") {
+    forAll { (numbers: ParList[Int]) =>
+      assert(numbers.monoFoldLeft(0)(_ + _) == numbers.toList.sum)
+    }
+  }
 }

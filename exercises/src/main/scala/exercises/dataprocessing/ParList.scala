@@ -9,7 +9,21 @@ import scala.concurrent.{Await, ExecutionContext, Future}
 //  List(9,10)             // partition 2
 // )
 // Note that we used the `apply` method with a varargs argument.
-case class ParList[A](partitions: List[List[A]])
+case class ParList[A](partitions: List[List[A]]) {
+  // e. Implement `monoFoldLeft`, a version of `foldLeft` that does not change the element type.
+  // Then move `monoFoldLeft` inside  the class `ParList`.
+  // `monoFoldLeft` should work as follow:
+  // Step 1: Fold each partition into a single value.
+  // Step 2: Fold the results of all partitions together.
+  // For example,
+  // Partition 1: List(a1, b1, c1, d1, e1, f1) ->       x   (folded partition 1)  \
+  // Partition 2: List(a2, b2, c2, d2, e2, f2) ->       y   (folded partition 2) - z (final result)
+  // Partition 3:                          Nil -> default (partition 3 is empty)  /
+  def monoFoldLeft(default: A)(combine: (A, A) => A): A =
+    partitions.map(_.foldLeft(default)(combine)).foldLeft(default)(combine)
+
+  def toList: List[A] = partitions.flatMap(_.toList)
+}
 
 object ParList {
   // The `*` at the end of List[A] is called a varargs. It means we can put as many arguments
