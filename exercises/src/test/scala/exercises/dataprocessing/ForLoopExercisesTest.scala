@@ -49,13 +49,13 @@ class ForLoopExercisesTest extends AnyFunSuite with ScalaCheckDrivenPropertyChec
 
   test("pattern is consistent with the foldLeft in the standard library") {
     forAll { (numbers: List[Int], default: Int, combine: (Int, Int) => Int) =>
-      assert(pattern(numbers, default)(combine) == numbers.foldLeft(default)(combine))
+      assert(foldLeft(numbers, default)(combine) == numbers.foldLeft(default)(combine))
     }
   }
 
   test("pattern noop") {
     forAll { (numbers: List[Int]) =>
-      assert(pattern(numbers, List.empty[Int])(_ :+ _) == numbers)
+      assert(foldLeft(numbers, List.empty[Int])(_ :+ _) == numbers)
     }
   }
 
@@ -77,4 +77,9 @@ class ForLoopExercisesTest extends AnyFunSuite with ScalaCheckDrivenPropertyChec
     }
   }
 
+  test("generalMin consistent with List minOption") {
+    forAll { (numbers: List[Int]) =>
+      assert(generalMin(numbers)(implicitly) == numbers.minOption)
+    }
+  }
 }
