@@ -32,12 +32,12 @@ case class ParList[A](partitions: List[List[A]])(implicit ec: ExecutionContext) 
   def size: Int =
     partitions.map(_.size).sum
 
-  def sizeV2: Double =
+  def sizeV2: Int =
     map(_ => 1).monoFoldLeft(Monoid.sumInt)
 
-  def sizeV3: Double = mapReduce(_ => 1)(Monoid.sumInt)
+  def sizeV3: Int = mapReduce(_ => 1)(Monoid.sumInt)
 
-  def sizeV4: Double = parFoldMap(_ => 1)(Monoid.sumInt)
+  def sizeV4: Int = parFoldMap(_ => 1)(Monoid.sumInt)
 
   def mapReduce[To](update: A => To)(monoid: Monoid[To]): To = map(update).monoFoldLeft(monoid)
 

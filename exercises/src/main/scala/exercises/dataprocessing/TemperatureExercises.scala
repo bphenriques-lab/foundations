@@ -2,6 +2,10 @@ package exercises.dataprocessing
 
 object TemperatureExercises {
 
+  val sampleSort = new Ordering[Sample] {
+    override def compare(x: Sample, y: Sample): Int = x.temperatureFahrenheit.compare(y.temperatureFahrenheit)
+  }
+
   // b. Implement `minSampleByTemperature` which finds the `Sample` with the coldest temperature.
   // `minSampleByTemperature` should work as follow:
   // Step 1: Find the local minimums (for each partition the `Sample` with the coldest temperature).
@@ -13,18 +17,17 @@ object TemperatureExercises {
     samples.partitions.flatMap(minTemperatureList).minOption
   }
 
-  def minSampleByTemperatureV2(samples: ParList[Sample]): Option[Sample] = {
-    val sort = new Ordering[Sample] {
-      override def compare(x: Sample, y: Sample): Int = x.temperatureFahrenheit.compare(y.temperatureFahrenheit)
-    }
-    samples.foldMap(Option(_))(Monoid.minOption[Sample](sort))
-  }
+  def minSampleByTemperatureV2(samples: ParList[Sample]): Option[Sample] =
+    samples.foldMap(Option(_))(Monoid.minOption[Sample](sampleSort))
 
-  def minSampleByTemperatureV3(samples: ParList[Sample]): Option[Sample] = {
+  def minSampleByTemperatureV3(samples: ParList[Sample]): Option[Sample] =
+    samples.parFoldMap(Option(_))(Monoid.minOption[Sample](sampleSort))
+
+  def maxSampleByTemperature(samples: ParList[Sample]): Option[Sample] = {
     val sort = new Ordering[Sample] {
       override def compare(x: Sample, y: Sample): Int = x.temperatureFahrenheit.compare(y.temperatureFahrenheit)
     }
-    samples.parFoldMap(Option(_))(Monoid.minOption[Sample](sort))
+    samples.parFoldMap(Option(_))(Monoid.maxOption[Sample](sort))
   }
 
   // c. Implement `averageTemperature` which finds the average temperature across all `Samples`.
@@ -140,15 +143,22 @@ object TemperatureExercises {
   // should return the same result as `summaryList`
   def summaryParList(samples: ParList[Sample]): Summary =
     Summary(
-      min = ???,
-      max = ???,
-      sum = ???,
-      size = ???
+      min = minSampleByTemperatureV3(samples),
+      max = maxSampleByTemperature(samples),
+      sum = sumTemperaturesV4(samples),
+      size = samples.sizeV4
     )
 
   // Implement `summaryParListOnePass` using `parFoldMap` only ONCE.
   // Note: In `ParListTest.scala`, there is already a test checking that `summaryParListOnePass`
   // should return the same result as `summaryList`
   def summaryParListOnePass(samples: ParList[Sample]): Summary =
-    ???
+    samples.parFoldMap(sample =>
+      Summary(
+        Some(sample),
+        Some(sample),
+        sample.temperatureFahrenheit,
+        1
+      )
+    )(Summary.monoid)
 }
