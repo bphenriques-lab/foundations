@@ -12,6 +12,13 @@ object TemperatureExercises {
     samples.partitions.flatMap(minTemperatureList).minOption
   }
 
+  def minSampleByTemperatureV2(samples: ParList[Sample]): Option[Sample] = {
+    val sort = new Ordering[Sample] {
+      override def compare(x: Sample, y: Sample): Int = x.temperatureFahrenheit.compare(y.temperatureFahrenheit)
+    }
+    samples.foldMap(Option(_))(Monoid.minOption[Sample](sort))
+  }
+
   // c. Implement `averageTemperature` which finds the average temperature across all `Samples`.
   // `averageTemperature` should work as follow:
   // Step 1: Compute the sum of all samples temperatures

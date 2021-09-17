@@ -17,6 +17,17 @@ object Monoid {
     def combine(first: Double, second: Double): Double = first + second
   }
 
+  def minOption[A](sort: Ordering[A]): Monoid[Option[A]] = option(sort.min)
+  def option[A](combine2: (A, A) => A): Monoid[Option[A]] = new Monoid[Option[A]] {
+    override def default: Option[A] = None
+    override def combine(first: Option[A], second: Option[A]): Option[A] = (first, second) match {
+      case (None, None) => None
+      case (Some(a), None) => Some(a)
+      case (None, Some(b)) => Some(b)
+      case (Some(a), Some(b)) => Some(combine2(a, b))
+    }
+  }
+
   def zip[A, B](monoidA: Monoid[A], monoidB: Monoid[B]): Monoid[(A, B)] = new Monoid[(A, B)] {
     override def default: (A, B) = (monoidA.default, monoidB.default)
 

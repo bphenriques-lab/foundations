@@ -45,6 +45,44 @@ class ParListTest extends AnyFunSuite with ScalaCheckDrivenPropertyChecks with P
     }
   }
 
+  test("minSampleByTemperatureV2 example") {
+    val samples = List(
+      Sample("Africa", "Algeria", None, "Algiers", 8, 1, 2020, 50),
+      Sample("Africa", "Algeria", None, "Algiers", 8, 1, 2020, 56.3),
+      Sample("Africa", "Algeria", None, "Algiers", 8, 1, 2020, 23.4),
+      Sample("Africa", "Algeria", None, "Algiers", 8, 1, 2020, 89.7),
+      Sample("Africa", "Algeria", None, "Algiers", 8, 1, 2020, 22.1),
+      Sample("Africa", "Algeria", None, "Algiers", 8, 1, 2020, 34.7),
+      Sample("Africa", "Algeria", None, "Algiers", 8, 1, 2020, 99.0)
+    )
+    val parSamples = ParList.byPartitionSize(3, samples)
+
+    assert(
+      minSampleByTemperatureV2(parSamples) ==
+        Some(Sample("Africa", "Algeria", None, "Algiers", 8, 1, 2020, 22.1))
+    )
+  }
+
+  test("minSampleByTemperatureV2 consistent with List minByOption") {
+    forAll { (samples: ParList[Sample]) =>
+      assert(
+        TemperatureExercises.minSampleByTemperatureV2(samples) ==
+          samples.partitions.flatten.minByOption(_.temperatureCelsius)
+      )
+    }
+  }
+
+  test("minSampleByTemperatureV2 returns the coldest Sample") {
+    forAll { (samples: List[Sample]) =>
+      val parSamples = ParList.byPartitionSize(3, samples)
+
+      for {
+        coldest <- minSampleByTemperatureV2(parSamples)
+        sample <- samples
+      } assert(coldest.temperatureFahrenheit <= sample.temperatureFahrenheit)
+    }
+  }
+
   test("averageTemperature example") {
     val samples = List(
       Sample("Africa", "Algeria", None, "Algiers", 8, 1, 2020, 50),
