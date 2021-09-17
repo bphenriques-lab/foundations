@@ -1,6 +1,7 @@
 package exercises.dataprocessing
 
 object TemperatureExercises {
+
   // b. Implement `minSampleByTemperature` which finds the `Sample` with the coldest temperature.
   // `minSampleByTemperature` should work as follow:
   // Step 1: Find the local minimums (for each partition the `Sample` with the coldest temperature).
@@ -17,6 +18,13 @@ object TemperatureExercises {
       override def compare(x: Sample, y: Sample): Int = x.temperatureFahrenheit.compare(y.temperatureFahrenheit)
     }
     samples.foldMap(Option(_))(Monoid.minOption[Sample](sort))
+  }
+
+  def minSampleByTemperatureV3(samples: ParList[Sample]): Option[Sample] = {
+    val sort = new Ordering[Sample] {
+      override def compare(x: Sample, y: Sample): Int = x.temperatureFahrenheit.compare(y.temperatureFahrenheit)
+    }
+    samples.parFoldMap(Option(_))(Monoid.minOption[Sample](sort))
   }
 
   // c. Implement `averageTemperature` which finds the average temperature across all `Samples`.
@@ -74,6 +82,13 @@ object TemperatureExercises {
     Option.unless(numberSamples == 0)(sum / numberSamples)
   }
 
+  def averageTemperatureV6(samples: ParList[Sample]): Option[Double] = {
+    val (numberSamples, sum) = samples
+      .parFoldMap(sample => (1, sample.temperatureFahrenheit))(Monoid.zip(Monoid.sumInt, Monoid.sumDouble))
+
+    Option.unless(numberSamples == 0)(sum / numberSamples)
+  }
+
   def sumTemperatures(samples: ParList[Sample]): Double =
     samples.partitions
       .map(_.map(_.temperatureFahrenheit).sum)
@@ -84,6 +99,9 @@ object TemperatureExercises {
 
   def sumTemperaturesV3(samples: ParList[Sample]): Double =
     samples.mapReduce(_.temperatureFahrenheit)(Monoid.sumDouble)
+
+  def sumTemperaturesV4(samples: ParList[Sample]): Double =
+    samples.parFoldMap(_.temperatureFahrenheit)(Monoid.sumDouble)
 
   // `summaryList` iterate 4 times over `samples`, one for each field.
   def summaryList(samples: List[Sample]): Summary =

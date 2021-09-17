@@ -1,12 +1,16 @@
 package exercises.dataprocessing
 
+import java.util.concurrent.TimeUnit
+import scala.concurrent.duration.Duration
+import scala.concurrent.{Await, ExecutionContext, Future}
+
 // For example, here is a ParList[Int] with two partitions:
 // ParList(
 //  List(1,2,3,4,5,6,7,8), // partition 1
 //  List(9,10)             // partition 2
 // )
 // Note that we used the `apply` method with a varargs argument.
-case class ParList[A](partitions: List[List[A]]) {
+case class ParList[A](partitions: List[List[A]])(implicit ec: ExecutionContext) {
   // e. Implement `monoFoldLeft`, a version of `foldLeft` that does not change the element type.
   // Then move `monoFoldLeft` inside  the class `ParList`.
   // `monoFoldLeft` should work as follow:
@@ -33,6 +37,8 @@ case class ParList[A](partitions: List[List[A]]) {
 
   def sizeV3: Double = mapReduce(_ => 1)(Monoid.sumInt)
 
+  def sizeV4: Double = parFoldMap(_ => 1)(Monoid.sumInt)
+
   def mapReduce[To](update: A => To)(monoid: Monoid[To]): To = map(update).monoFoldLeft(monoid)
 
   // We can optimize mapReduce to run in one-go but which is conventionally called foldMap
@@ -41,6 +47,16 @@ case class ParList[A](partitions: List[List[A]]) {
     partitions
       .map(partition => partition.foldLeft(monoid.default) { (state, v) => monoid.combine(state, update(v)) })
       .foldLeft(monoid.default)(monoid.combine)
+
+  def parFoldMap[To](update: A => To)(monoid: Monoid[To]): To = {
+    def foldPartition(partition: List[A]): Future[To] = Future {
+      partition.foldLeft(monoid.default) { (state, v) => monoid.combine(state, update(v)) }
+    }
+
+    val tasks = partitions.map(partition => foldPartition(partition))
+
+    Await.result(Future.foldLeft(tasks)(monoid.default)(monoid.combine), Duration(1, TimeUnit.MINUTES))
+  }
 
   def toList: List[A] = partitions.flatMap(_.toList)
 }
@@ -51,7 +67,7 @@ object ParList {
   // into a collection.
   // For example, ParList(List(1,2), List(3,4)) == ParList(List(List(1,2), List(3,4)))
   // This is why we can create a List using the syntax List(1,2,3) instead of 1 :: 2 :: 3 :: Nil
-  def apply[A](partitions: List[A]*): ParList[A] =
+  def apply[A](partitions: List[A]*)(implicit ec: ExecutionContext): ParList[A] =
     ParList(partitions.toList)
 
   // Creates a ParList by grouping a List into partitions of fixed size.
@@ -63,7 +79,7 @@ object ParList {
   //   List(7,8,9),
   //   List(10)
   // )
-  def byPartitionSize[A](partitionSize: Int, items: List[A]): ParList[A] =
+  def byPartitionSize[A](partitionSize: Int, items: List[A])(implicit ec: ExecutionContext): ParList[A] =
     if (items.isEmpty) ParList()
     else ParList(items.grouped(partitionSize).toList)
 }

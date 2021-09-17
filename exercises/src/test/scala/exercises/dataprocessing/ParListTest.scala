@@ -5,6 +5,8 @@ import org.scalacheck.{Arbitrary, Gen}
 import org.scalatest.funsuite.AnyFunSuite
 import org.scalatestplus.scalacheck.ScalaCheckDrivenPropertyChecks
 
+import scala.concurrent.ExecutionContext.Implicits.global
+
 class ParListTest extends AnyFunSuite with ScalaCheckDrivenPropertyChecks with ParListTestInstances {
 
   test("minSampleByTemperature example") {
@@ -264,6 +266,12 @@ class ParListTest extends AnyFunSuite with ScalaCheckDrivenPropertyChecks with P
   test("foldMap is consistent with monoFoldLeft") {
     forAll { (numbers: ParList[Int]) =>
       assert(numbers.foldMap(identity)(Monoid.sumInt) == numbers.monoFoldLeft(Monoid.sumInt))
+    }
+  }
+
+  test("parFoldMap is consistent with foldMap") {
+    forAll { (numbers: ParList[Int]) =>
+      assert(numbers.parFoldMap(identity)(Monoid.sumInt) == numbers.foldMap(identity)(Monoid.sumInt))
     }
   }
 
