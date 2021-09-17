@@ -26,14 +26,18 @@ object TemperatureExercises {
   // Answer: I believe so, with foldLeft where the initial state is a Pair<Sum,Size>.
   // Alternatively we can use running average.
   def averageTemperature(samples: ParList[Sample]): Option[Double] = {
-    def sumPerPartition(partition: List[Sample]): Option[(Int, Double)] = {
-      Option.unless(partition.isEmpty) { partition.size -> partition.map(_.temperatureFahrenheit).sum }
-    }
-
-    val size = samples.partitions.flatMap(sumPerPartition).map(_._1).sum
-    val sum = samples.partitions.flatMap(sumPerPartition).map(_._2).sum
-    Option.unless(samples.partitions.isEmpty) { sum / size }
+    val numberSamples = size(samples)
+    val sum  = sumTemperatures(samples)
+    Option.unless(numberSamples == 0)(sum / numberSamples)
   }
+
+  def sumTemperatures(samples: ParList[Sample]): Double =
+    samples.partitions
+      .map(_.map(_.temperatureFahrenheit).sum)
+      .sum
+
+  def size(samples: ParList[Sample]): Int =
+    samples.partitions.map(_.size).sum
 
   // `summaryList` iterate 4 times over `samples`, one for each field.
   def summaryList(samples: List[Sample]): Summary =
@@ -52,21 +56,18 @@ object TemperatureExercises {
         sum = 0.0,
         size = 0
       )
-    )(
-      (state, sample) =>
-        Summary(
-          min = state.min.fold(Some(sample))(
-            current =>
-              if (current.temperatureFahrenheit <= sample.temperatureFahrenheit) Some(current)
-              else Some(sample)
-          ),
-          max = state.max.fold(Some(sample))(
-            current =>
-              if (current.temperatureFahrenheit >= sample.temperatureFahrenheit) Some(current)
-              else Some(sample)
-          ),
-          sum = state.sum + sample.temperatureFahrenheit,
-          size = state.size + 1
+    )((state, sample) =>
+      Summary(
+        min = state.min.fold(Some(sample))(current =>
+          if (current.temperatureFahrenheit <= sample.temperatureFahrenheit) Some(current)
+          else Some(sample)
+        ),
+        max = state.max.fold(Some(sample))(current =>
+          if (current.temperatureFahrenheit >= sample.temperatureFahrenheit) Some(current)
+          else Some(sample)
+        ),
+        sum = state.sum + sample.temperatureFahrenheit,
+        size = state.size + 1
       )
     )
 

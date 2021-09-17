@@ -60,7 +60,6 @@ class ParListTest extends AnyFunSuite with ScalaCheckDrivenPropertyChecks with P
     assert(averageTemperature(parSamples) == Some(53.6))
   }
 
-  // Too tired. Copied from the solution.
   test("averageTemperature: min <= avg <= max ") {
     forAll { (samples: ParList[Sample]) =>
       val optMin = samples.partitions.flatten.map(_.temperatureFahrenheit).minOption
