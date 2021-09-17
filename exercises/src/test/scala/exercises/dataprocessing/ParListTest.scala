@@ -223,6 +223,12 @@ class ParListTest extends AnyFunSuite with ScalaCheckDrivenPropertyChecks with P
     }
   }
 
+  test("foldMap is consistent with monoFoldLeft") {
+    forAll { (numbers: ParList[Int]) =>
+      assert(numbers.foldMap(identity)(Monoid.sumInt) == numbers.monoFoldLeft(Monoid.sumInt))
+    }
+  }
+
   val genInt: Gen[Int]              = Gen.choose(Int.MinValue, Int.MaxValue)
   val genDouble: Gen[Double]        = Gen.choose(Float.MinValue, Float.MaxValue).map(x => x: Double)
 

@@ -1,8 +1,5 @@
 package exercises.dataprocessing
 
-import scala.concurrent.duration.Duration
-import scala.concurrent.{Await, ExecutionContext, Future}
-
 // For example, here is a ParList[Int] with two partitions:
 // ParList(
 //  List(1,2,3,4,5,6,7,8), // partition 1
@@ -36,7 +33,14 @@ case class ParList[A](partitions: List[List[A]]) {
 
   def sizeV3: Double = mapReduce(_ => 1)(Monoid.sumInt)
 
-  def mapReduce[To](update: A => To)(monoid: Monoid[To]) = map(update).monoFoldLeft(monoid)
+  def mapReduce[To](update: A => To)(monoid: Monoid[To]): To = map(update).monoFoldLeft(monoid)
+
+  // We can optimize mapReduce to run in one-go but which is conventionally called foldMap
+  def foldMap[To](update: A => To)(monoid: Monoid[To]): To = mapReduce(update)(monoid)
+  def mapReduceV2[To](update: A => To)(monoid: Monoid[To]): To =
+    partitions
+      .map(partition => partition.foldLeft(monoid.default) { (state, v) => monoid.combine(state, update(v)) })
+      .foldLeft(monoid.default)(monoid.combine)
 
   def toList: List[A] = partitions.flatMap(_.toList)
 }
