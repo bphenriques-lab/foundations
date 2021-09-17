@@ -34,6 +34,10 @@ case class ParList[A](partitions: List[List[A]]) {
   def sizeV2: Double =
     map(_ => 1).monoFoldLeft(Monoid.sumInt)
 
+  def sizeV3: Double = mapReduce(_ => 1)(Monoid.sumInt)
+
+  def mapReduce[To](update: A => To)(monoid: Monoid[To]) = map(update).monoFoldLeft(monoid)
+
   def toList: List[A] = partitions.flatMap(_.toList)
 }
 

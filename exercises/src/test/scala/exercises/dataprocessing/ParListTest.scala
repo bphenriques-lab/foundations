@@ -169,6 +169,37 @@ class ParListTest extends AnyFunSuite with ScalaCheckDrivenPropertyChecks with P
     }
   }
 
+  test("averageTemperatureV5 example") {
+    val samples = List(
+      Sample("Africa", "Algeria", None, "Algiers", 8, 1, 2020, 50),
+      Sample("Africa", "Algeria", None, "Algiers", 8, 1, 2020, 56.3),
+      Sample("Africa", "Algeria", None, "Algiers", 8, 1, 2020, 23.4),
+      Sample("Africa", "Algeria", None, "Algiers", 8, 1, 2020, 89.7),
+      Sample("Africa", "Algeria", None, "Algiers", 8, 1, 2020, 22.1),
+      Sample("Africa", "Algeria", None, "Algiers", 8, 1, 2020, 34.7),
+      Sample("Africa", "Algeria", None, "Algiers", 8, 1, 2020, 99.0)
+    )
+    val parSamples = ParList.byPartitionSize(3, samples)
+
+    assert(averageTemperatureV5(parSamples) == Some(53.6))
+  }
+
+  test("averageTemperatureV5: min <= avg <= max ") {
+    forAll { (samples: ParList[Sample]) =>
+      val optMin = samples.partitions.flatten.map(_.temperatureFahrenheit).minOption
+      val optMax = samples.partitions.flatten.map(_.temperatureFahrenheit).maxOption
+      val optAvg = TemperatureExercises.averageTemperatureV5(samples)
+
+      (optMin, optMax, optAvg) match {
+        case (None, None, None) => succeed
+        case (Some(min), Some(max), Some(avg)) =>
+          assert(min <= avg)
+          assert(avg <= max)
+        case _ => fail(s"inconsistent $optMin, $optMax, $optAvg")
+      }
+    }
+  }
+
   ignore("summary is consistent between implementations") {
     forAll { (samples: ParList[Sample]) =>
       val samplesList = samples.partitions.flatten

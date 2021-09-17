@@ -60,6 +60,13 @@ object TemperatureExercises {
     Option.unless(numberSamples == 0)(sum / numberSamples)
   }
 
+  def averageTemperatureV5(samples: ParList[Sample]): Option[Double] = {
+    val (numberSamples, sum) = samples
+      .mapReduce(sample => (1, sample.temperatureFahrenheit))(Monoid.zip(Monoid.sumInt, Monoid.sumDouble))
+
+    Option.unless(numberSamples == 0)(sum / numberSamples)
+  }
+
   def sumTemperatures(samples: ParList[Sample]): Double =
     samples.partitions
       .map(_.map(_.temperatureFahrenheit).sum)
@@ -67,6 +74,9 @@ object TemperatureExercises {
 
   def sumTemperaturesV2(samples: ParList[Sample]): Double =
     samples.map(_.temperatureFahrenheit).monoFoldLeft(Monoid.sumDouble)
+
+  def sumTemperaturesV3(samples: ParList[Sample]): Double =
+    samples.mapReduce(_.temperatureFahrenheit)(Monoid.sumDouble)
 
   // `summaryList` iterate 4 times over `samples`, one for each field.
   def summaryList(samples: List[Sample]): Summary =
