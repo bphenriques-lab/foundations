@@ -32,12 +32,14 @@ object TemperatureExercises {
   }
 
   def averageTemperatureV2(samples: ParList[Sample]): Option[Double] = {
-    def partitionSumSize(partition: List[Sample]) = partition.foldLeft[(Double, Int)]((0.0, 0)) { case ((sum, size), sample) =>
-      (sum + sample.temperatureFahrenheit, size + 1)
+    def partitionSumSize(partition: List[Sample]) = partition.foldLeft[(Double, Int)]((0.0, 0)) {
+      case ((sum, size), sample) =>
+        (sum + sample.temperatureFahrenheit, size + 1)
     }
 
-    def tuplesSum(tuples: List[(Double, Int)]): (Double, Int) = tuples.foldLeft[(Double, Int)]((0.0, 0)) { case ((totalSum, totalSize), (sum, size)) =>
-      (totalSum + sum, totalSize + size)
+    def tuplesSum(tuples: List[(Double, Int)]): (Double, Int) = tuples.foldLeft[(Double, Int)]((0.0, 0)) {
+      case ((totalSum, totalSize), (sum, size)) =>
+        (totalSum + sum, totalSize + size)
     }
 
     val (sum, numberSamples) = tuplesSum(samples.partitions.map(p => partitionSumSize(p)))
@@ -47,6 +49,14 @@ object TemperatureExercises {
   def averageTemperatureV3(samples: ParList[Sample]): Option[Double] = {
     val numberSamples = samples.sizeV2
     val sum           = sumTemperaturesV2(samples)
+    Option.unless(numberSamples == 0)(sum / numberSamples)
+  }
+
+  def averageTemperatureV4(samples: ParList[Sample]): Option[Double] = {
+    val (numberSamples, sum) = samples
+      .map(sample => (1, sample.temperatureFahrenheit))
+      .monoFoldLeft(Monoid.zip(Monoid.sumInt, Monoid.sumDouble))
+
     Option.unless(numberSamples == 0)(sum / numberSamples)
   }
 

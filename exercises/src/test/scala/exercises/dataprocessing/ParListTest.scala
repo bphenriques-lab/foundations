@@ -119,14 +119,45 @@ class ParListTest extends AnyFunSuite with ScalaCheckDrivenPropertyChecks with P
     )
     val parSamples = ParList.byPartitionSize(3, samples)
 
-    assert(averageTemperatureV2(parSamples) == Some(53.6))
+    assert(averageTemperatureV3(parSamples) == Some(53.6))
   }
 
   test("averageTemperatureV3: min <= avg <= max ") {
     forAll { (samples: ParList[Sample]) =>
       val optMin = samples.partitions.flatten.map(_.temperatureFahrenheit).minOption
       val optMax = samples.partitions.flatten.map(_.temperatureFahrenheit).maxOption
-      val optAvg = TemperatureExercises.averageTemperatureV2(samples)
+      val optAvg = TemperatureExercises.averageTemperatureV3(samples)
+
+      (optMin, optMax, optAvg) match {
+        case (None, None, None) => succeed
+        case (Some(min), Some(max), Some(avg)) =>
+          assert(min <= avg)
+          assert(avg <= max)
+        case _ => fail(s"inconsistent $optMin, $optMax, $optAvg")
+      }
+    }
+  }
+
+  test("averageTemperatureV4 example") {
+    val samples = List(
+      Sample("Africa", "Algeria", None, "Algiers", 8, 1, 2020, 50),
+      Sample("Africa", "Algeria", None, "Algiers", 8, 1, 2020, 56.3),
+      Sample("Africa", "Algeria", None, "Algiers", 8, 1, 2020, 23.4),
+      Sample("Africa", "Algeria", None, "Algiers", 8, 1, 2020, 89.7),
+      Sample("Africa", "Algeria", None, "Algiers", 8, 1, 2020, 22.1),
+      Sample("Africa", "Algeria", None, "Algiers", 8, 1, 2020, 34.7),
+      Sample("Africa", "Algeria", None, "Algiers", 8, 1, 2020, 99.0)
+    )
+    val parSamples = ParList.byPartitionSize(3, samples)
+
+    assert(averageTemperatureV4(parSamples) == Some(53.6))
+  }
+
+  test("averageTemperatureV4: min <= avg <= max ") {
+    forAll { (samples: ParList[Sample]) =>
+      val optMin = samples.partitions.flatten.map(_.temperatureFahrenheit).minOption
+      val optMax = samples.partitions.flatten.map(_.temperatureFahrenheit).maxOption
+      val optAvg = TemperatureExercises.averageTemperatureV4(samples)
 
       (optMin, optMax, optAvg) match {
         case (None, None, None) => succeed
@@ -166,6 +197,7 @@ class ParListTest extends AnyFunSuite with ScalaCheckDrivenPropertyChecks with P
 
   checkMonoid("sumInt", Monoid.sumInt, genInt)
   checkMonoid("sumDouble", Monoid.sumDouble, genDouble)
+  checkMonoid("zip", Monoid.zip(Monoid.sumInt, Monoid.sumDouble), Gen.zip(genInt, genDouble))
 
   // Gen: Explicit
   // Arbitrary: Implicit
