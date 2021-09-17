@@ -1,6 +1,6 @@
 package exercises.dataprocessing
 
-  object TemperatureExercises {
+object TemperatureExercises {
   // b. Implement `minSampleByTemperature` which finds the `Sample` with the coldest temperature.
   // `minSampleByTemperature` should work as follow:
   // Step 1: Find the local minimums (for each partition the `Sample` with the coldest temperature).

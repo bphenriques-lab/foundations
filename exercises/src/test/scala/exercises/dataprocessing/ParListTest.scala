@@ -1,8 +1,9 @@
 package exercises.dataprocessing
 
+import exercises.dataprocessing.TemperatureExercises._
+import org.scalacheck.{Arbitrary, Gen}
 import org.scalatest.funsuite.AnyFunSuite
 import org.scalatestplus.scalacheck.ScalaCheckDrivenPropertyChecks
-import TemperatureExercises._
 
 class ParListTest extends AnyFunSuite with ScalaCheckDrivenPropertyChecks with ParListTestInstances {
 
@@ -14,7 +15,7 @@ class ParListTest extends AnyFunSuite with ScalaCheckDrivenPropertyChecks with P
       Sample("Africa", "Algeria", None, "Algiers", 8, 1, 2020, 89.7),
       Sample("Africa", "Algeria", None, "Algiers", 8, 1, 2020, 22.1),
       Sample("Africa", "Algeria", None, "Algiers", 8, 1, 2020, 34.7),
-      Sample("Africa", "Algeria", None, "Algiers", 8, 1, 2020, 99.0),
+      Sample("Africa", "Algeria", None, "Algiers", 8, 1, 2020, 99.0)
     )
     val parSamples = ParList.byPartitionSize(3, samples)
 
@@ -39,7 +40,7 @@ class ParListTest extends AnyFunSuite with ScalaCheckDrivenPropertyChecks with P
 
       for {
         coldest <- minSampleByTemperature(parSamples)
-        sample  <- samples
+        sample <- samples
       } assert(coldest.temperatureFahrenheit <= sample.temperatureFahrenheit)
     }
   }
@@ -52,7 +53,7 @@ class ParListTest extends AnyFunSuite with ScalaCheckDrivenPropertyChecks with P
       Sample("Africa", "Algeria", None, "Algiers", 8, 1, 2020, 89.7),
       Sample("Africa", "Algeria", None, "Algiers", 8, 1, 2020, 22.1),
       Sample("Africa", "Algeria", None, "Algiers", 8, 1, 2020, 34.7),
-      Sample("Africa", "Algeria", None, "Algiers", 8, 1, 2020, 99.0),
+      Sample("Africa", "Algeria", None, "Algiers", 8, 1, 2020, 99.0)
     )
     val parSamples = ParList.byPartitionSize(3, samples)
 
@@ -79,11 +80,11 @@ class ParListTest extends AnyFunSuite with ScalaCheckDrivenPropertyChecks with P
   ignore("summary is consistent between implementations") {
     forAll { (samples: ParList[Sample]) =>
       val samplesList = samples.partitions.flatten
-      val reference   = summaryList(samples.partitions.flatten)
+      val reference = summaryList(samples.partitions.flatten)
       List(
         summaryListOnePass(samplesList),
         summaryParList(samples),
-        summaryParListOnePass(samples),
+        summaryParListOnePass(samples)
       ).foreach { other =>
         assert(reference.size == other.size)
         assert((reference.sum - other.sum).abs < 0.00001)
@@ -96,6 +97,25 @@ class ParListTest extends AnyFunSuite with ScalaCheckDrivenPropertyChecks with P
   test("monoFoldLeft sum") {
     forAll { (numbers: ParList[Int]) =>
       assert(numbers.monoFoldLeft(0)(_ + _) == numbers.toList.sum)
+    }
+  }
+
+  checkMonoid("sumInt", Monoid.sumInt)
+
+  // Gen: Explicit
+  // Arbitrary: Implicit
+  def checkMonoid[A: Arbitrary](name: String, monoid: Monoid[A]): Unit = {
+    test(s"Monoid $name - combine to be a no-op with default") {
+      forAll { (v: A) =>
+        assert(monoid.combine(v, monoid.default) == v)
+        assert(monoid.combine(monoid.default, v) == v)
+      }
+    }
+
+    test(s"Monoid $name - combine has to be associative") {
+      forAll { (v1: A, v2: A, v3: A) =>
+        assert(monoid.combine(v1, monoid.combine(v2, v3)) == monoid.combine(monoid.combine(v1, v2), v3))
+      }
     }
   }
 }

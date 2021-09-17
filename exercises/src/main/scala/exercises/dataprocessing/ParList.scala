@@ -22,6 +22,12 @@ case class ParList[A](partitions: List[List[A]]) {
   def monoFoldLeft(default: A)(combine: (A, A) => A): A =
     partitions.map(_.foldLeft(default)(combine)).foldLeft(default)(combine)
 
+  def monoFoldLeftV2(default: A)(combine: (A, A) => A): A =
+    partitions.map(_.foldLeft(default)(combine)).foldLeft(default)(combine)
+
+  def map[To](update: A => To): ParList[To] =
+    ParList(partitions.map(_.map(update)))
+
   def toList: List[A] = partitions.flatMap(_.toList)
 }
 
