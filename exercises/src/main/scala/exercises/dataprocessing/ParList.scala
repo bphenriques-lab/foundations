@@ -28,6 +28,12 @@ case class ParList[A](partitions: List[List[A]]) {
   def map[To](update: A => To): ParList[To] =
     ParList(partitions.map(_.map(update)))
 
+  def size: Int =
+    partitions.map(_.size).sum
+
+  def sizeV2: Double =
+    map(_ => 1).monoFoldLeft(Monoid.sumInt)
+
   def toList: List[A] = partitions.flatMap(_.toList)
 }
 

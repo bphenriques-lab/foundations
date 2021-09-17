@@ -26,7 +26,7 @@ object TemperatureExercises {
   // Answer: I believe so, with foldLeft where the initial state is a Pair<Sum,Size>.
   // Alternatively we can use running average.
   def averageTemperature(samples: ParList[Sample]): Option[Double] = {
-    val numberSamples = size(samples)
+    val numberSamples = samples.size
     val sum           = sumTemperatures(samples)
     Option.unless(numberSamples == 0)(sum / numberSamples)
   }
@@ -44,8 +44,10 @@ object TemperatureExercises {
     Option.unless(numberSamples == 0)(sum / numberSamples)
   }
 
-  def partitionSumSize(partition: List[Sample]) = partition.foldLeft[(Double, Int)]((0.0, 0)) { case ((sum, size), sample) =>
-    (sum + sample.temperatureFahrenheit, size + 1)
+  def averageTemperatureV3(samples: ParList[Sample]): Option[Double] = {
+    val numberSamples = samples.sizeV2
+    val sum           = sumTemperaturesV2(samples)
+    Option.unless(numberSamples == 0)(sum / numberSamples)
   }
 
   def sumTemperatures(samples: ParList[Sample]): Double =
@@ -55,9 +57,6 @@ object TemperatureExercises {
 
   def sumTemperaturesV2(samples: ParList[Sample]): Double =
     samples.map(_.temperatureFahrenheit).monoFoldLeft(Monoid.sumDouble)
-
-  def size(samples: ParList[Sample]): Int =
-    samples.partitions.map(_.size).sum
 
   // `summaryList` iterate 4 times over `samples`, one for each field.
   def summaryList(samples: List[Sample]): Summary =
