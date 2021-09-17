@@ -130,21 +130,27 @@ class ParListTest extends AnyFunSuite with ScalaCheckDrivenPropertyChecks with P
     }
   }
 
-  checkMonoid("sumInt", Monoid.sumInt)
+  val genInt: Gen[Int]              = Gen.choose(Int.MinValue, Int.MaxValue)
+  val genDouble: Gen[Double]        = Gen.choose(Float.MinValue, Float.MaxValue).map(x => x: Double)
+
+  checkMonoid("sumInt", Monoid.sumInt, genInt)
+  checkMonoid("sumDouble", Monoid.sumDouble, genDouble)
 
   // Gen: Explicit
   // Arbitrary: Implicit
-  def checkMonoid[A: Arbitrary](name: String, monoid: Monoid[A]): Unit = {
-    test(s"Monoid $name - combine to be a no-op with default") {
-      forAll { (v: A) =>
-        assert(monoid.combine(v, monoid.default) == v)
-        assert(monoid.combine(monoid.default, v) == v)
+  def checkMonoid[A](name: String, monoid: Monoid[A], gen: Gen[A]) = {
+    test(s"$name Monoid default is a noop") {
+      forAll(gen) { (value: A) =>
+        assert(monoid.combine(value, monoid.default) == value)
+        assert(monoid.combine(monoid.default, value) == value)
       }
     }
-
-    test(s"Monoid $name - combine has to be associative") {
-      forAll { (v1: A, v2: A, v3: A) =>
-        assert(monoid.combine(v1, monoid.combine(v2, v3)) == monoid.combine(monoid.combine(v1, v2), v3))
+    test(s"$name Monoid combine is associative") {
+      forAll(gen, gen, gen) { (first: A, second: A, third: A) =>
+        assert(
+          monoid.combine(first, monoid.combine(second, third)) ==
+            monoid.combine(monoid.combine(first, second), third)
+        )
       }
     }
   }

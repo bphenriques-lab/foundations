@@ -53,6 +53,9 @@ object TemperatureExercises {
       .map(_.map(_.temperatureFahrenheit).sum)
       .sum
 
+  def sumTemperaturesV2(samples: ParList[Sample]): Double =
+    samples.map(_.temperatureFahrenheit).monoFoldLeft(Monoid.sumDouble)
+
   def size(samples: ParList[Sample]): Int =
     samples.partitions.map(_.size).sum
 
