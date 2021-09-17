@@ -27,8 +27,25 @@ object TemperatureExercises {
   // Alternatively we can use running average.
   def averageTemperature(samples: ParList[Sample]): Option[Double] = {
     val numberSamples = size(samples)
-    val sum  = sumTemperatures(samples)
+    val sum           = sumTemperatures(samples)
     Option.unless(numberSamples == 0)(sum / numberSamples)
+  }
+
+  def averageTemperatureV2(samples: ParList[Sample]): Option[Double] = {
+    def partitionSumSize(partition: List[Sample]) = partition.foldLeft[(Double, Int)]((0.0, 0)) { case ((sum, size), sample) =>
+      (sum + sample.temperatureFahrenheit, size + 1)
+    }
+
+    def tuplesSum(tuples: List[(Double, Int)]): (Double, Int) = tuples.foldLeft[(Double, Int)]((0.0, 0)) { case ((totalSum, totalSize), (sum, size)) =>
+      (totalSum + sum, totalSize + size)
+    }
+
+    val (sum, numberSamples) = tuplesSum(samples.partitions.map(p => partitionSumSize(p)))
+    Option.unless(numberSamples == 0)(sum / numberSamples)
+  }
+
+  def partitionSumSize(partition: List[Sample]) = partition.foldLeft[(Double, Int)]((0.0, 0)) { case ((sum, size), sample) =>
+    (sum + sample.temperatureFahrenheit, size + 1)
   }
 
   def sumTemperatures(samples: ParList[Sample]): Double =
