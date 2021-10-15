@@ -104,11 +104,11 @@ object UserCreationExercises {
   }
 
   def readUser(console: Console, clock: Clock): User = {
-    val name        = readName(console)
-    val dateOfBirth = readDateOfBirth(console)
-    val subscribed  = readSubscribeToMailingList(console)
-    val now         = clock.now()
-    val user        = User(name, dateOfBirth, subscribed, now)
+    val name = readName(console)
+    val dateOfBirth = readDateOfBirthRetry(console, maxAttempt = 3)
+    val subscribed = readSubscribeToMailingListRetry(console, maxAttempt = 3)
+    val now = clock.now()
+    val user = User(name, dateOfBirth, subscribed, now)
     console.writeLine(s"User is $user")
     user
   }
@@ -134,8 +134,19 @@ object UserCreationExercises {
   // Note: `maxAttempt` must be greater than 0, if not you should throw an exception.
   // Note: You can implement the retry logic using recursion or a for/while loop. I suggest
   //       trying both possibilities.
-  def readSubscribeToMailingListRetry(console: Console, maxAttempt: Int): Boolean =
-    ???
+  @tailrec
+  def readSubscribeToMailingListRetry(console: Console, maxAttempt: Int): Boolean = {
+    require(maxAttempt > 0, "maxAttempt must be greater than 0")
+    console.writeLine("Would you like to subscribe to our mailing list? [Y/N]")
+    val line = console.readLine()
+    Try(parseYesNo(line)) match {
+      case Success(value) => value
+      case Failure(error) =>
+        console.writeLine("""Incorrect format, enter "Y" for Yes or "N" for "No"""")
+        if (maxAttempt > 1) readSubscribeToMailingListRetry(console, maxAttempt - 1)
+        else throw error
+    }
+  }
 
   // 6. Implement `readDateOfBirthRetry` which behaves like
   // `readDateOfBirth` but retries when the user enters an invalid input.
@@ -152,27 +163,39 @@ object UserCreationExercises {
   // [Prompt] Incorrect format, for example enter "18-03-2001" for 18th of March 2001
   // Throws an exception because the user only had 1 attempt and they entered an invalid input.
   // Note: `maxAttempt` must be greater than 0, if not you should throw an exception.
-  def readDateOfBirthRetry(console: Console, maxAttempt: Int): LocalDate =
-    ???
+  @tailrec
+  def readDateOfBirthRetry(console: Console, maxAttempt: Int): LocalDate = {
+    require(maxAttempt > 0, "maxAttempt must be greater than 0")
 
-  // 7. Update `readUser` so that it allows the user to make up to 2 mistakes (3 attempts)
-  // when entering their date of birth and mailing list subscription flag.
+    console.writeLine("What's your date of birth? [dd-mm-yyyy]")
+    val line = console.readLine()
+    Try(parseDate(line)) match {
+      case Success(value) => value
+      case Failure(error) =>
+        console.writeLine("""Incorrect format, for example enter "18-03-2001" for 18th of March 2001""")
+        if (maxAttempt > 1) readDateOfBirthRetry(console, maxAttempt - 1)
+        else throw error
+    }
 
-  //////////////////////////////////////////////
-  // Bonus question (not covered by the videos)
-  //////////////////////////////////////////////
+    // 7. Update `readUser` so that it allows the user to make up to 2 mistakes (3 attempts)
+    // when entering their date of birth and mailing list subscription flag.
 
-  // 8. Implement `readSubscribeToMailingListRetry` using a while-loop instead of a recursion.
+    //////////////////////////////////////////////
+    // Bonus question (not covered by the videos)
+    //////////////////////////////////////////////
 
-  // 9. Transform the example based tests for `readSubscribeToMailingListRetry` into a property based test.
-  // Step 1. Randomise Yes/No input. For example, generate random boolean and convert it to "Y" or "N".
-  // Step 2. Randomise invalid input. For example, generate a random String that's not "Y" or "N".
-  // Step 3. Randomise `maxAttempt`. For example, a number between 1 and 20.
-  // Step 4. Randomise the number of invalid inputs. For example, generate a List of invalid inputs
-  //         using `Gen.listOf`.
-  // Step 5. Check that the method returns a success if `maxAttempt > # of invalid inputs`,
-  //         otherwise, it throws an exception.
+    // 8. Implement `readSubscribeToMailingListRetry` using a while-loop instead of a recursion.
 
-  // 10. Write property based tests for `readDateOfBirthRetry` and `readUser`.
+    // 9. Transform the example based tests for `readSubscribeToMailingListRetry` into a property based test.
+    // Step 1. Randomise Yes/No input. For example, generate random boolean and convert it to "Y" or "N".
+    // Step 2. Randomise invalid input. For example, generate a random String that's not "Y" or "N".
+    // Step 3. Randomise `maxAttempt`. For example, a number between 1 and 20.
+    // Step 4. Randomise the number of invalid inputs. For example, generate a List of invalid inputs
+    //         using `Gen.listOf`.
+    // Step 5. Check that the method returns a success if `maxAttempt > # of invalid inputs`,
+    //         otherwise, it throws an exception.
 
+    // 10. Write property based tests for `readDateOfBirthRetry` and `readUser`.
+
+  }
 }
