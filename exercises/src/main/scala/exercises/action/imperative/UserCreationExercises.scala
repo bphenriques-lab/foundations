@@ -13,24 +13,20 @@ import scala.util.{Failure, Success, Try}
 object UserCreationApp extends App {
   import UserCreationExercises._
 
-  readUser()
+  readUser(Console.system, Clock.system)
 }
 
 object UserCreationExercises {
   val dateOfBirthFormatter: DateTimeFormatter = DateTimeFormatter.ofPattern("dd-MM-yyyy")
 
-  case class User(name: String, dateOfBirth: LocalDate, createdAt: Instant)
+  case class User(name: String, dateOfBirth: LocalDate, subscribedToMailingList: Boolean, createdAt: Instant)
 
-  def readUser(): User = {
-    println("What's your name?")
-    val name = StdIn.readLine()
-    println("What's your date of birth? [dd-mm-yyyy]")
-    val dateOfBirth = LocalDate.parse(StdIn.readLine(), dateOfBirthFormatter)
-    val now         = Instant.now()
-    val user        = User(name, dateOfBirth, now)
-    println(s"User is $user")
-    user
-  }
+  def parseYesNo(value: String) =
+    value match {
+      case "Y" => true
+      case "N" => false
+      case _ => throw new IllegalArgumentException
+    }
 
   // 1. Implement `readSubscribeToMailingList` which asks if the user wants to
   // subscribe to our mailing list. They can answer "Y" for yes or "N" for No.
@@ -44,18 +40,6 @@ object UserCreationExercises {
   // Throws an exception.
   // Note: You can read a user input using `StdIn.readLine()`.
   // Note: You can use `throw new IllegalArgumentException("...")` to throw an exception.
-  def readSubscribeToMailingList(): Boolean = {
-    println("Would you like to subscribe to our mailing list? [Y/N]?")
-    parseYesNo(StdIn.readLine())
-  }
-
-  def parseYesNo(value: String) =
-    value match {
-      case "Y" => true
-      case "N" => false
-      case _ => throw new IllegalArgumentException
-    }
-
   // 2. How can we test `readSubscribeToMailingList`?
   // We cannot use example-based tests or property-based tests
   // because `readSubscribeToMailingList` depends on the
@@ -113,8 +97,21 @@ object UserCreationExercises {
   // Note: You will need to add `subscribedToMailingList: Boolean` field to `User`.
   // Note: How can you mock the current time? Check the `Clock` class in this package
   //       and update the signature of `readUser`.
-  def readUser(console: Console): User =
-    ???
+
+  def readName(console: Console): String = {
+    console.writeLine("What's your name?")
+    console.readLine()
+  }
+
+  def readUser(console: Console, clock: Clock): User = {
+    val name        = readName(console)
+    val dateOfBirth = readDateOfBirth(console)
+    val subscribed  = readSubscribeToMailingList(console)
+    val now         = clock.now()
+    val user        = User(name, dateOfBirth, subscribed, now)
+    console.writeLine(s"User is $user")
+    user
+  }
 
   //////////////////////////////////////////////
   // PART 2: Error handling
