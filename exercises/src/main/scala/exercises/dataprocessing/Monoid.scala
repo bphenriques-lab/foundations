@@ -22,9 +22,9 @@ object Monoid {
   def option[A](combine2: (A, A) => A): Monoid[Option[A]] = new Monoid[Option[A]] {
     override def default: Option[A] = None
     override def combine(first: Option[A], second: Option[A]): Option[A] = (first, second) match {
-      case (None, None) => None
-      case (Some(a), None) => Some(a)
-      case (None, Some(b)) => Some(b)
+      case (None, None)       => None
+      case (Some(a), None)    => Some(a)
+      case (None, Some(b))    => Some(b)
       case (Some(a), Some(b)) => Some(combine2(a, b))
     }
   }
@@ -38,7 +38,25 @@ object Monoid {
     )
   }
 
-  def zip4[A, B, C, D](monoidA: Monoid[A], monoidB: Monoid[B], monoidC: Monoid[C], monoidD: Monoid[D]): Monoid[(A, B, C, D)] = new Monoid[(A, B, C, D)] {
+  def map[A, B](monoidB: Monoid[B]): Monoid[Map[A, B]] = new Monoid[Map[A, B]] {
+    override def default: Map[A, B] = Map.empty
+
+    override def combine(first: Map[A, B], second: Map[A, B]): Map[A, B] =
+      first ++ second.map { case (k2, v2) =>
+        first.get(k2) match {
+          case Some(v1) => k2 -> monoidB.combine(v1, v2)
+          case None     => k2 -> v2
+        }
+      }
+  }
+
+  // Can I use this for summary?
+  def zip4[A, B, C, D](
+    monoidA: Monoid[A],
+    monoidB: Monoid[B],
+    monoidC: Monoid[C],
+    monoidD: Monoid[D]
+  ): Monoid[(A, B, C, D)] = new Monoid[(A, B, C, D)] {
     override def default: (A, B, C, D) = (monoidA.default, monoidB.default, monoidC.default, monoidD.default)
 
     override def combine(first: (A, B, C, D), second: (A, B, C, D)): (A, B, C, D) = (

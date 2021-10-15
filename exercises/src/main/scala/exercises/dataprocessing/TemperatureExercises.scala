@@ -154,11 +154,18 @@ object TemperatureExercises {
   // should return the same result as `summaryList`
   def summaryParListOnePass(samples: ParList[Sample]): Summary =
     samples.parFoldMap(sample =>
-      Summary(
-        Some(sample),
-        Some(sample),
-        sample.temperatureFahrenheit,
-        1
-      )
+      sampleToSummary(sample)
     )(Summary.monoid)
+
+  private def sampleToSummary(sample: Sample) = {
+    Summary(
+      Some(sample),
+      Some(sample),
+      sample.temperatureFahrenheit,
+      1
+    )
+  }
+
+  def aggregateBy[K](samples: ParList[Sample])(f: Sample => K): Map[K, Summary] =
+    samples.parFoldMap(sample => Map(f(sample) -> sampleToSummary(sample)))(Monoid.map(Summary.monoid))
 }
