@@ -17,17 +17,27 @@ import scala.util.{Failure, Success, Try}
 // testOnly exercises.action.imperative.UserCreationExercisesTest
 class UserCreationExercisesTest extends AnyFunSuite with ScalaCheckDrivenPropertyChecks {
 
-  ignore("readSubscribeToMailingList example") {
-    val inputs  = ListBuffer("N")
-    val outputs = ListBuffer.empty[String]
-    val console = Console.mock(inputs, outputs)
-    val result  = readSubscribeToMailingList(console)
-
-    assert(result == false)
-    assert(outputs.toList == List("Would you like to subscribe to our mailing list? [Y/N]"))
+  test("parseYesNo") {
+    assertThrows[IllegalArgumentException](parseYesNo("y"))
+    assertThrows[IllegalArgumentException](parseYesNo("n"))
+    assertThrows[IllegalArgumentException](parseYesNo(" "))
+    assert(parseYesNo("Y"))
+    assert(!parseYesNo("N"))
   }
 
-  ignore("readSubscribeToMailingList example failure") {
+  test("readSubscribeToMailingList example") {
+    forAll { (yesNo: Boolean) =>
+      val inputs  = ListBuffer(formatYesNo(yesNo))
+      val outputs = ListBuffer.empty[String]
+      val console = Console.mock(inputs, outputs)
+      val result  = readSubscribeToMailingList(console)
+
+      assert(result == yesNo)
+      assert(outputs.toList == List("Would you like to subscribe to our mailing list? [Y/N]"))
+    }
+  }
+
+  test("readSubscribeToMailingList example failure") {
     val console = Console.mock(ListBuffer("Never"), ListBuffer())
     val result  = Try(readSubscribeToMailingList(console))
 
