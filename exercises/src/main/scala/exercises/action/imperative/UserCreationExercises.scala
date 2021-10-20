@@ -2,10 +2,7 @@ package exercises.action.imperative
 
 import java.time.format.DateTimeFormatter
 import java.time.{Instant, LocalDate}
-
-import scala.annotation.tailrec
-import scala.io.StdIn
-import scala.util.{Failure, Success, Try}
+import scala.util.Try
 
 // Run the App using the green arrow next to object (if using IntelliJ)
 // or run `sbt` in the terminal to open it in shell mode, then type:
@@ -136,14 +133,14 @@ object UserCreationExercises {
   //       trying both possibilities.
   def readSubscribeToMailingListRetry(console: Console, maxAttempt: Int): Boolean =
     retry(maxAttempt) {
-      console.writeLine("Would you like to subscribe to our mailing list? [Y/N]")
-      val line = console.readLine()
-      Try(parseYesNo(line)) match {
-        case Success(value) => value
-        case Failure(error) =>
-          console.writeLine("""Incorrect format, enter "Y" for Yes or "N" for "No"""")
-          throw error
-      }
+      onError(
+        action = {
+          console.writeLine("Would you like to subscribe to our mailing list? [Y/N]")
+          val line = console.readLine()
+          parseYesNo(line)
+        },
+        cleanup = _ => console.writeLine("""Incorrect format, enter "Y" for Yes or "N" for "No"""")
+      )
   }
 
   // 6. Implement `readDateOfBirthRetry` which behaves like
@@ -163,13 +160,14 @@ object UserCreationExercises {
   // Note: `maxAttempt` must be greater than 0, if not you should throw an exception.
   def readDateOfBirthRetry(console: Console, maxAttempt: Int): LocalDate =
     retry(maxAttempt) {
-      console.writeLine("What's your date of birth? [dd-mm-yyyy]")
-      val line = console.readLine()
-      Try(parseDate(line)) match {
-        case Success(value) => value
-        case Failure(error) =>
-          console.writeLine("""Incorrect format, for example enter "18-03-2001" for 18th of March 2001""")
-          throw error
+      onError(
+        action = {
+          console.writeLine("What's your date of birth? [dd-mm-yyyy]")
+          val line = console.readLine()
+          parseDate(line)
+        },
+        cleanup = _ => console.writeLine("""Incorrect format, for example enter "18-03-2001" for 18th of March 2001""")
+      )
     }
 
     // 7. Update `readUser` so that it allows the user to make up to 2 mistakes (3 attempts)
@@ -192,5 +190,4 @@ object UserCreationExercises {
 
     // 10. Write property based tests for `readDateOfBirthRetry` and `readUser`.
 
-  }
 }
