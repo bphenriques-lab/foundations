@@ -1,5 +1,7 @@
 package exercises.action.imperative
 
+import exercises.action.imperative.UserCreationExercises.{User, parseDate, parseYesNo}
+
 import java.time.format.DateTimeFormatter
 import java.time.{Instant, LocalDate}
 import scala.util.Try
@@ -8,22 +10,11 @@ import scala.util.Try
 // or run `sbt` in the terminal to open it in shell mode, then type:
 // exercises/runMain exercises.action.imperative.UserCreationApp
 object UserCreationApp extends App {
-  import UserCreationExercises._
-
-  readUser(Console.system, Clock.system)
+  val ex = new UserCreationExercises(Console.system, Clock.system)
+  ex.readUser()
 }
 
-object UserCreationExercises {
-  val dateOfBirthFormatter: DateTimeFormatter = DateTimeFormatter.ofPattern("dd-MM-yyyy")
-
-  case class User(name: String, dateOfBirth: LocalDate, subscribedToMailingList: Boolean, createdAt: Instant)
-
-  def parseYesNo(value: String) =
-    value match {
-      case "Y" => true
-      case "N" => false
-      case _ => throw new IllegalArgumentException
-    }
+class UserCreationExercises(console: Console, clock: Clock) {
 
   // 1. Implement `readSubscribeToMailingList` which asks if the user wants to
   // subscribe to our mailing list. They can answer "Y" for yes or "N" for No.
@@ -46,12 +37,10 @@ object UserCreationExercises {
   // Then, try to test this version using property-based testing.
   // Note: Check the `Console` companion object.
   // Bonus: Try to write a property-based test for `readSubscribeToMailingList`
-  def readSubscribeToMailingList(console: Console): Boolean = {
+  def readSubscribeToMailingList(): Boolean = {
     console.writeLine("Would you like to subscribe to our mailing list? [Y/N]")
     parseYesNo(console.readLine())
   }
-
-  def formatYesNo(yesNo: Boolean): String = if (yesNo) "Y" else "N"
 
   // 3. Implement `readDateOfBirth` which asks the date of birth of the user.
   // User must answer using the format `dd-mm-yyyy`, e.g. "18-03-2001" for 18th of March 2001.
@@ -65,16 +54,10 @@ object UserCreationExercises {
   // Throws an exception.
   // Note: You can use `LocalDate.parse` to parse a String into a LocalDate.
   // Note: You can use the formatter `dateOfBirthFormatter` (in scope).
-  def readDateOfBirth(console: Console): LocalDate = {
+  def readDateOfBirth(): LocalDate = {
     console.writeLine("What's your date of birth? [dd-mm-yyyy]")
     parseDate(console.readLine())
   }
-
-  def parseDate(line: String): LocalDate =
-    Try(LocalDate.parse(line, dateOfBirthFormatter))
-      .getOrElse(
-        throw new IllegalArgumentException(s"Expected a date with format dd-mm-yyyy but received $line")
-      )
 
   // 4. Implement a testable version of `readUser`.
   // For example,
@@ -100,10 +83,10 @@ object UserCreationExercises {
     console.readLine()
   }
 
-  def readUser(console: Console, clock: Clock): User = {
+  def readUser(): User = {
     val name = readName(console)
-    val dateOfBirth = readDateOfBirthRetry(console, maxAttempt = 3)
-    val subscribed = readSubscribeToMailingListRetry(console, maxAttempt = 3)
+    val dateOfBirth = readDateOfBirthRetry(maxAttempt = 3)
+    val subscribed = readSubscribeToMailingListRetry(maxAttempt = 3)
     val now = clock.now()
     val user = User(name, dateOfBirth, subscribed, now)
     console.writeLine(s"User is $user")
@@ -131,7 +114,7 @@ object UserCreationExercises {
   // Note: `maxAttempt` must be greater than 0, if not you should throw an exception.
   // Note: You can implement the retry logic using recursion or a for/while loop. I suggest
   //       trying both possibilities.
-  def readSubscribeToMailingListRetry(console: Console, maxAttempt: Int): Boolean =
+  def readSubscribeToMailingListRetry(maxAttempt: Int): Boolean =
     retry(maxAttempt) {
       onError(
         action = {
@@ -141,7 +124,7 @@ object UserCreationExercises {
         },
         cleanup = _ => console.writeLine("""Incorrect format, enter "Y" for Yes or "N" for "No"""")
       )
-  }
+    }
 
   // 6. Implement `readDateOfBirthRetry` which behaves like
   // `readDateOfBirth` but retries when the user enters an invalid input.
@@ -158,7 +141,7 @@ object UserCreationExercises {
   // [Prompt] Incorrect format, for example enter "18-03-2001" for 18th of March 2001
   // Throws an exception because the user only had 1 attempt and they entered an invalid input.
   // Note: `maxAttempt` must be greater than 0, if not you should throw an exception.
-  def readDateOfBirthRetry(console: Console, maxAttempt: Int): LocalDate =
+  def readDateOfBirthRetry(maxAttempt: Int): LocalDate =
     retry(maxAttempt) {
       onError(
         action = {
@@ -169,6 +152,29 @@ object UserCreationExercises {
         cleanup = _ => console.writeLine("""Incorrect format, for example enter "18-03-2001" for 18th of March 2001""")
       )
     }
+}
+
+object UserCreationExercises {
+  val dateOfBirthFormatter: DateTimeFormatter = DateTimeFormatter.ofPattern("dd-MM-yyyy")
+
+  case class User(name: String, dateOfBirth: LocalDate, subscribedToMailingList: Boolean, createdAt: Instant)
+
+  def parseYesNo(value: String): Boolean =
+    value match {
+      case "Y" => true
+      case "N" => false
+      case _ => throw new IllegalArgumentException
+    }
+
+  def formatYesNo(yesNo: Boolean): String = if (yesNo) "Y" else "N"
+
+  def parseDate(line: String): LocalDate =
+    Try(LocalDate.parse(line, dateOfBirthFormatter))
+      .getOrElse(
+        throw new IllegalArgumentException(s"Expected a date with format dd-mm-yyyy but received $line")
+      )
+
+
 
     // 7. Update `readUser` so that it allows the user to make up to 2 mistakes (3 attempts)
     // when entering their date of birth and mailing list subscription flag.
