@@ -68,7 +68,7 @@ class IOTest extends AnyFunSuite with ScalaCheckDrivenPropertyChecks {
   // PART 3: Error handling
   //////////////////////////////////////////////
 
-  ignore("onError success") {
+  test("onError success") {
     var counter = 0
 
     val action = IO { counter += 1; "" }.onError(_ => IO(counter *= 2))
@@ -91,7 +91,7 @@ class IOTest extends AnyFunSuite with ScalaCheckDrivenPropertyChecks {
     assert(result == Failure(error1))
   }
 
-  ignore("onError with two failures") {
+  test("onError with two failures") {
     var counter = 0
     val error1  = new Exception("Boom 1")
     val error2  = new Exception("Boom 2")

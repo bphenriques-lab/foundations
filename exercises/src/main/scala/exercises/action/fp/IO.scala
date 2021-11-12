@@ -70,7 +70,7 @@ trait IO[A] {
   // IO(throw new Exception("Boom!")).onError(logError).unsafeRun()
   // prints "Got an error: Boom!" and throws new Exception("Boom!")
   def onError[Other](cleanup: Throwable => IO[Other]): IO[A] =
-    handleErrorWith(e => cleanup(e) *> IO.fail(e))
+    handleErrorWith(e => cleanup(e).attempt *> IO.fail(e))
 
   // Retries this action until either:
   // * It succeeds.
