@@ -48,17 +48,15 @@ class UserCreationService(console: Console, clock: Clock) {
         console.readLine
         .flatMap(parseLineToBoolean)
 
-  val readUser: IO[User] = {
-    readName.flatMap { name =>
-      readDateOfBirth.flatMap { dateOfBirth =>
-        readSubscribeToMailingList.flatMap { subscribed =>
-          clock.now.flatMap { now =>
-            val user        = User(name, dateOfBirth, subscribed, now)
-            console.writeLine(s"User is $user").map(_ => user)
-          }
-        }
-      }
-    }
+  val readUser: IO[User] =
+    for {
+      name <- readName
+      dateOfBirth <- readDateOfBirth
+      subscribed <- readSubscribeToMailingList
+      now <- clock.now
+      user = User(name, dateOfBirth, subscribed, now)
+      _ <- console.writeLine(s"User is $user")
+    } yield user
 
   //////////////////////////////////////////////
   // PART 2: For Comprehension
