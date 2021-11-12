@@ -77,7 +77,14 @@ trait IO[A] {
   // IO(throw new Exception("Boom!")).onError(logError).unsafeRun()
   // prints "Got an error: Boom!" and throws new Exception("Boom!")
   def onError[Other](cleanup: Throwable => IO[Other]): IO[A] =
-    ???
+    IO {
+      Try(this.unsafeRun()) match {
+        case Failure(exception) =>
+          cleanup(exception).unsafeRun()
+          throw exception
+        case Success(value) => value
+      }
+    }
 
   // Retries this action until either:
   // * It succeeds.
@@ -93,8 +100,16 @@ trait IO[A] {
   // Returns "Hello" because `action` fails twice and then succeeds when counter reaches 3.
   // Note: `maxAttempt` must be greater than 0, otherwise the `IO` should fail.
   // Note: `retry` is a no-operation when `maxAttempt` is equal to 1.
-  def retry(maxAttempt: Int): IO[A] =
-    ???
+  def retry(maxAttempt: Int): IO[A] = IO {
+    require(maxAttempt > 0, "maxAttempt must be greater than 0")
+
+    Try(unsafeRun()) match {
+      case Failure(exception) =>
+        if (maxAttempt == 1) throw exception
+        else retry(maxAttempt - 1).unsafeRun()
+      case Success(value) => value
+    }
+  }
 
   // Checks if the current IO is a failure or a success.
   // For example,
