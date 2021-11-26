@@ -8,6 +8,7 @@ import org.scalatest.funsuite.AnyFunSuite
 import org.scalatestplus.scalacheck.ScalaCheckDrivenPropertyChecks
 
 import java.time.{Duration, Instant, LocalDate}
+import scala.concurrent.ExecutionContext
 import scala.util.Success
 
 // Run the test using the green arrow next to class name (if using IntelliJ)
@@ -28,7 +29,7 @@ class SearchFlightServiceTest extends AnyFunSuite with ScalaCheckDrivenPropertyC
     val client2 = SearchFlightClient.constant(IO(List(flight2, flight4)))
 
     val service = SearchFlightService.fromTwoClients(client1, client2)
-    val result  = service.search(parisOrly, londonGatwick, today).unsafeRun()
+    val result  = service.search(parisOrly, londonGatwick, today)(ExecutionContext.global).unsafeRun()
 
     assert(result == SearchResult(List(flight1, flight2, flight3, flight4)))
   }
@@ -44,7 +45,7 @@ class SearchFlightServiceTest extends AnyFunSuite with ScalaCheckDrivenPropertyC
     val client2 = SearchFlightClient.constant(IO.fail(new Exception))
 
     val service = SearchFlightService.fromTwoClients(client1, client2)
-    val result  = service.search(parisOrly, londonGatwick, today).attempt.unsafeRun()
+    val result  = service.search(parisOrly, londonGatwick, today)(ExecutionContext.global).attempt.unsafeRun()
 
     assert(result == Success(SearchResult(List(flight1, flight3))))
   }
@@ -53,10 +54,10 @@ class SearchFlightServiceTest extends AnyFunSuite with ScalaCheckDrivenPropertyC
     forAll(airportGen, airportGen, dateGen, successfulClientGen, failingClientGen) {
       (from, to, date, sucClient, faiClient) =>
         val service = SearchFlightService.fromTwoClients(faiClient, sucClient)
-        val result  = service.search(from, to, date).attempt.unsafeRun()
+        val result  = service.search(from, to, date)(ExecutionContext.global).attempt.unsafeRun()
         val onlySucResult = SearchFlightService
           .fromClients(List(sucClient))
-          .search(from, to, date).attempt.unsafeRun()
+          .search(from, to, date)(ExecutionContext.global).attempt.unsafeRun()
 
         assert(result == onlySucResult)
     }

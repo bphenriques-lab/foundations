@@ -9,7 +9,7 @@ import scala.concurrent.duration._
 // This represent the main API of Lambda Corp.
 // `search` is called whenever a user press the "Search" button on the website.
 trait SearchFlightService {
-  def search(from: Airport, to: Airport, date: LocalDate): IO[SearchResult]
+  def search(from: Airport, to: Airport, date: LocalDate)(ec: ExecutionContext): IO[SearchResult]
 }
 
 object SearchFlightService {
@@ -24,16 +24,15 @@ object SearchFlightService {
   //       You can also defined tests for `SearchResult` in `SearchResultTest`
   def fromTwoClients(client1: SearchFlightClient, client2: SearchFlightClient): SearchFlightService =
     new SearchFlightService {
-      def search(from: Airport, to: Airport, date: LocalDate): IO[SearchResult] = {
+      def search(from: Airport, to: Airport, date: LocalDate)(ec: ExecutionContext): IO[SearchResult] = {
         def searchByClient(client: SearchFlightClient): IO[List[Flight]] =
           client
             .search(from, to, date)
             .handleErrorWith(e => IO.debug(s"Failed to fetch flights: ${e.getMessage}") *> IO(List.empty))
 
-        for {
-          client1Search <- searchByClient(client1)
-          client2Search <- searchByClient(client2)
-        } yield SearchResult(client1Search ++ client2Search)
+        searchByClient(client1)
+          .parZip(searchByClient(client2))(ec)
+          .map { case(r1, r2) => SearchResult(r1 ++ r2) }
       }
     }
 
