@@ -68,7 +68,7 @@ object TemperatureNotebook extends App {
   // * List map + sum
   // * ParList foldMap
   // * ParList parFoldMap
-  bench("sum", iterations = 100, warmUpIterations = 40, ignore = true)(
+  bench("sum", iterations = 200, warmUpIterations = 40)(
     Labelled("List foldLeft", () => samples.foldLeft(0.0)((state, sample) => state + sample.temperatureFahrenheit)),
     Labelled("List map + sum", () => samples.map(_.temperatureFahrenheit).sum),
     Labelled("ParList foldMap", () => parSamples.foldMap(_.temperatureFahrenheit)(Monoid.sumDouble)),
@@ -80,7 +80,7 @@ object TemperatureNotebook extends App {
   // * List with 1 iterations
   // * ParList with 4 iterations
   // * ParList with 1 iteration
-  bench("summary", iterations = 100, warmUpIterations = 40)(
+  bench("summary", iterations = 100, warmUpIterations = 40, ignore = true)(
     Labelled("List 4 iterations", () => TemperatureExercises.summaryList(samples)),
     Labelled("List 1 iteration", () => TemperatureExercises.summaryListOnePass(samples)),
     Labelled("ParList 4 iterations", () => TemperatureExercises.summaryParList(parSamples)),

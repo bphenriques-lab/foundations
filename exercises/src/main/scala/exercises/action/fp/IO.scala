@@ -2,7 +2,7 @@ package exercises.action.fp
 
 import java.util.concurrent.CountDownLatch
 import scala.annotation.tailrec
-import scala.concurrent.duration.{Duration, FiniteDuration}
+import scala.concurrent.duration.{Duration, DurationInt, FiniteDuration}
 import scala.concurrent.{Await, ExecutionContext, Future, Promise}
 import scala.util.{Failure, Success, Try}
 
@@ -128,9 +128,12 @@ trait IO[A] {
 
   // Runs both the current IO and `other` concurrently,
   // then combine their results into a tuple
-  def parZip[Other](other: IO[Other])(ec: ExecutionContext): IO[(A, Other)] =
-    ???
+  def parZip[Other](other: IO[Other])(ec: ExecutionContext): IO[(A, Other)] = IO {
+    val f1 = Future { this.unsafeRun() }(ec)
+    val f2 = Future { other.unsafeRun() }(ec)
 
+    Await.result(f1.zip(f2), 30.seconds)
+  }
 }
 
 object IO {

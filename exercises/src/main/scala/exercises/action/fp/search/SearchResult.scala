@@ -9,7 +9,12 @@ case class SearchResult private (flights: List[Flight]) {
 
 object SearchResult {
   def apply(flights: List[Flight]): SearchResult = {
-    new SearchResult(flights.sorted(bestOrdering))
+    val distinct = flights
+      .groupBy(_.flightId)
+      .map { case (_, flightsSameId) => flightsSameId.minBy(_.unitPrice) }
+      .toList
+    val sorted = distinct.sorted(bestOrdering)
+    new SearchResult(sorted)
   }
 
   // Order by number of stops (0, 1, 2, ...) and then by price.

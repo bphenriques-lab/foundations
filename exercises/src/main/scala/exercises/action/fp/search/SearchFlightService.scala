@@ -1,9 +1,8 @@
 package exercises.action.fp.search
 
-import java.time.LocalDate
 import exercises.action.fp.IO
 
-import scala.annotation.tailrec
+import java.time.LocalDate
 import scala.concurrent.ExecutionContext
 import scala.concurrent.duration._
 
@@ -26,9 +25,14 @@ object SearchFlightService {
   def fromTwoClients(client1: SearchFlightClient, client2: SearchFlightClient): SearchFlightService =
     new SearchFlightService {
       def search(from: Airport, to: Airport, date: LocalDate): IO[SearchResult] = {
+        def searchByClient(client: SearchFlightClient): IO[List[Flight]] =
+          client
+            .search(from, to, date)
+            .handleErrorWith(e => IO.debug(s"Failed to fetch flights: ${e.getMessage}") *> IO(List.empty))
+
         for {
-          client1Search <- client1.search(from, to, date)
-          client2Search <- client2.search(from, to, date)
+          client1Search <- searchByClient(client1)
+          client2Search <- searchByClient(client2)
         } yield SearchResult(client1Search ++ client2Search)
       }
     }
