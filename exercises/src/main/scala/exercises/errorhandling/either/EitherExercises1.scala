@@ -18,24 +18,28 @@ object EitherExercises1 {
   // getUserEmail(123, users) == Right("e@y.com")
   // getUserEmail(111, users) == Left("User 111 is missing")
   // getUserEmail(444, users) == Left("User 444 has no email address")
-  def getUserEmail(userId: UserId, users: Map[UserId, User]): Either[String, Email] =
-    ???
+  def getUserEmail(userId: UserId, users: Map[UserId, User]): Either[UserEmailError, Email] =
+    for {
+      user  <- users.get(userId).toRight(UserNotFound(userId))
+      email <- user.email.toRight(EmailNotFound(userId))
+    } yield email
 
   // 2. Refactor `getUserEmail` so that it uses an `UserEmailError` instead of `String`
   // in the error channel.
-  sealed trait UserEmailError
-  object UserEmailError {
-    case object UserNotFound  extends UserEmailError
-    case object EmailNotFound extends UserEmailError
+  sealed trait UserEmailError {
+    def errorMessage: String
   }
+  object UserEmailError {
+    case class UserNotFound(userId: UserId)  extends UserEmailError {
+      override def errorMessage: String = s"User ${userId.value} is missing"
+    }
+    case class EmailNotFound(userId: UserId) extends UserEmailError {
+      override def errorMessage: String = s"User ${userId.value} has no email address"
+    }
+  }
+
   // In Scala 3,
   // enum UserEmailError {
   //   case UserNotFound, EmailNotFound
   // }
-
-  // 3. Implement `errorMessage` which creates a human readable error message
-  // from a `UserEmailError` object.
-  // Note: Once implemented, move this method inside `UserEmailError`
-  def errorMessage(error: UserEmailError): String =
-    ???
 }
