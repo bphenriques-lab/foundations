@@ -43,7 +43,6 @@ object ValidationExercises {
       country <- Country.all.find(_.code == countryCode).toValid(FormError.NotSupported(countryCode))
     } yield country
 
-
   // 2. Copy-paste `checkUsernameSize` from `EitherExercises2` and adapt it to `Validation`.
   def checkUsernameSize(username: String): Validation[TooSmall, Unit] =
     Validation.cond(username.length >= 5, (), TooSmall(username.length))
@@ -51,11 +50,11 @@ object ValidationExercises {
   // 3. Copy-paste `checkUsernameCharacters` from `EitherExercises2` and adapt it to `Validation`.
   def checkUsernameCharacters(username: String): Validation[InvalidCharacters, Unit] =
     username.toList.filterNot(isValidUsernameCharacter) match {
-      case Nil => Validation.Valid()
+      case Nil               => Validation.Valid()
       case invalidCharacters => Validation.invalid(InvalidCharacters(invalidCharacters))
     }
 
-    def isValidUsernameCharacter(c: Char): Boolean =
+  def isValidUsernameCharacter(c: Char): Boolean =
     c.isLetter || c.isDigit || c == '_' || c == '-'
 
   // 4. Implement `validateUsername` which verifies that the username size and content
@@ -70,8 +69,16 @@ object ValidationExercises {
     } yield Username(username)
 
   // 5. Implement `validateUser` so that it reports all errors.
-  def validateUser(usernameStr: String, countryStr: String): Validation[FormError, User] =
-    (validateUsername(usernameStr), validateCountry(countryStr)).zipWith(User.apply)
+  def validateUser(usernameStr: String, countryStr: String): Validation[FieldError, User] =
+    (
+      field(FieldIds.username, validateUsername(usernameStr)),
+      field(FieldIds.countryOfResidence, validateCountry(countryStr))
+    ).zipWith(User.apply)
+
+  def field[A](fieldId: String, validation: Validation[FormError, A]): Validation[FieldError, A] =
+    validation.mapErrorAll { formErrors =>
+      NEL(FieldError(fieldId, formErrors))
+    }
 
   // 6. When validateUser` produces a `TooSmall(2)`, how do we know that it is about the username?
   // Update `validateUser` so that it groups all the errors by field (see `FieldError` below).
