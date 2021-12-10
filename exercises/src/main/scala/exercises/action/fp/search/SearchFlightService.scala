@@ -47,7 +47,7 @@ object SearchFlightService {
             .search(from, to, date)
             .handleErrorWith(e => IO.debug(s"Failed to fetch flights: ${e.getMessage}") *> IO(List.empty))
 
-        clients.traverse(searchByClient)
+        clients.parTraverse(searchByClient)(ec: ExecutionContext)
           .map(_.flatten)
           .map(SearchResult(_))
         }
