@@ -23,18 +23,7 @@ object SearchFlightService {
   // Note: A example based test is defined in `SearchFlightServiceTest`.
   //       You can also defined tests for `SearchResult` in `SearchResultTest`
   def fromTwoClients(client1: SearchFlightClient, client2: SearchFlightClient): SearchFlightService =
-    new SearchFlightService {
-      def search(from: Airport, to: Airport, date: LocalDate)(ec: ExecutionContext): IO[SearchResult] = {
-        def searchByClient(client: SearchFlightClient): IO[List[Flight]] =
-          client
-            .search(from, to, date)
-            .handleErrorWith(e => IO.debug(s"Failed to fetch flights: ${e.getMessage}") *> IO(List.empty))
-
-        searchByClient(client1)
-          .parZip(searchByClient(client2))(ec)
-          .map { case(r1, r2) => SearchResult(r1 ++ r2) }
-      }
-    }
+    fromClients(List(client1, client2))
 
   // 2. Several clients can return data for the same flight. For example, if we combine data
   // from British Airways and lastminute.com, lastminute.com may include flights from British Airways.
@@ -52,9 +41,17 @@ object SearchFlightService {
   // Note: We can assume `clients` to contain less than 100 elements.
   def fromClients(clients: List[SearchFlightClient]): SearchFlightService =
     new SearchFlightService {
-      def search(from: Airport, to: Airport, date: LocalDate): IO[SearchResult] =
-        ???
-    }
+      def search(from: Airport, to: Airport, date: LocalDate)(ec: ExecutionContext): IO[SearchResult] = {
+        def searchByClient(client: SearchFlightClient): IO[List[Flight]] =
+          client
+            .search(from, to, date)
+            .handleErrorWith(e => IO.debug(s"Failed to fetch flights: ${e.getMessage}") *> IO(List.empty))
+
+        clients.traverse(searchByClient)
+          .map(_.flatten)
+          .map(SearchResult(_))
+        }
+      }
 
   // 5. Refactor `fromClients` using `sequence` or `traverse` from the `IO` companion object.
 

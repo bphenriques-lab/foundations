@@ -169,8 +169,16 @@ object IO {
   // fetches user 1111, then fetches user 2222 and finally fetches user 3333.
   // If no error occurs, it returns the users in the same order:
   // List(User(1111, ...), User(2222, ...), User(3333, ...))
+  def sequenceV1[A](actions: List[IO[A]]): IO[List[A]] = // why not like this? :thinking: is it due to unsafeRun()?
+    IO { actions.map(_.unsafeRun()) }
+
   def sequence[A](actions: List[IO[A]]): IO[List[A]] =
-    ???
+    actions
+      .foldLeft(IO(List.empty[A])) { (state, action) =>
+        state.zip(action).map { case (list, a) => a :: list }
+      }
+      .map(_.reverse) // Optimization b/c adding to the end of the list is more complex
+
 
   // `traverse` is a shortcut for `map` followed by `sequence`, similar to how
   // `flatMap`  is a shortcut for `map` followed by `flatten`
@@ -194,7 +202,11 @@ object IO {
   // List(User(1111, ...), User(2222, ...), User(3333, ...))
   // Note: You may want to use `parZip` to implement `parSequence`.
   def parSequence[A](actions: List[IO[A]])(ec: ExecutionContext): IO[List[A]] =
-    ???
+    actions
+      .foldLeft(IO(List.empty[A])) { (state, action) =>
+        state.parZip(action)(ec).map { case (list, a) => a :: list }
+      }
+      .map(_.reverse) // Optimization b/c adding to the end of the list is more complex
 
   // `parTraverse` is a shortcut for `map` followed by `parSequence`, similar to how
   // `flatMap`     is a shortcut for `map` followed by `flatten`
